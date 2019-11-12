@@ -12,7 +12,7 @@ Eigen::Matrix4f Movable::MakeTrans()
 
 void Movable::MyTranslate(Eigen::Vector3f amt)
 {
-	T.translate(amt);
+	T.pretranslate(amt);
 }
 //angle in radians
 void Movable::MyRotate(Eigen::Vector3f rotAxis, float angle)

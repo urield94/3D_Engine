@@ -7,9 +7,10 @@ int main(int argc, char *argv[])
   Display *disp = new Display(1000, 800, "Wellcome");
   Renderer renderer;
   igl::opengl::glfw::Viewer viewer;
-  //viewer.load_mesh_from_file("C:/Dev/EngineIGLnew/tutorial/data/sphere.obj");
-  viewer.load_mesh_from_file("/home/urield/study/201/3D/3D_Engine/tutorial/data/cube.obj");
-  viewer.load_mesh_from_file("/home/urield/study/201/3D/3D_Engine/tutorial/data/bunny.off");
+
+  viewer.load_mesh_from_file("/home/rochberg/CLionProjects/3D_Engine/tutorial/data/cube.obj");
+  viewer.load_mesh_from_file("/home/rochberg/CLionProjects/3D_Engine/tutorial/data/cow.off");
+
   Init(*disp);
   renderer.init(&viewer);
   disp->SetRenderer(&renderer);

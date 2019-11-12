@@ -1,6 +1,13 @@
 # EngineForAnimationCourse
 Graphic Engine based on Libigl
 
+THIS IS LINUX VERSION!
+
+In order to compile the code in Linux environment install the following packages -
+
+    sudo apt-get install freeglut3-dev
+    sudo apt-get install xorg-dev libglu1-mesa-dev
+
 For compiling:
 1. Clone or download the project
 2. Download Cmake from the link in the site
