@@ -118,24 +118,71 @@ Renderer::~Renderer()
 	//	delete scn;
 }
 
-bool Renderer::Picking(double newx, double newy)
+int Renderer::Picking(double newx, double newy)
 {
+	float objects_distance[scn->data_list.size()];
+	int object_pressed[scn->data_list.size()];
+
+	for (int i = 0; i < scn->data_list.size() ;i++) {
 		int fid;
-		//Eigen::MatrixXd C = Eigen::MatrixXd::Constant(scn->data().F.rows(), 3, 1);
-		Eigen::Vector3f bc;
+		Eigen::Vector3f bc; // alphas - a1, a2, a3
 		double x = newx;
 		double y = core().viewport(3) - newy;
+
+		object_pressed[i] = -1;
+		objects_distance[i] = 100000001;
+
 		Eigen::Matrix4f view = Eigen::Matrix4f::Identity();
 		igl::look_at(core().camera_eye, core().camera_center, core().camera_up, view);
 		view = view * (core().trackball_angle * Eigen::Scaling(core().camera_zoom * core().camera_base_zoom)
-				* Eigen::Translation3f(core().camera_translation + core().camera_base_translation)).matrix() * scn->MakeTrans() * scn->data().MakeTrans();
+					   * Eigen::Translation3f(core().camera_translation + core().camera_base_translation)).matrix() * scn->MakeTrans() * scn->data_list[i].MakeTrans();
+
 		if (igl::unproject_onto_mesh(Eigen::Vector2f(x, y), view,
- 			core().proj, core().viewport, scn->data().V, scn->data().F, fid, bc))
-		{
-			return true;
+									 core().proj, core().viewport, scn->data_list[i].V, scn->data_list[i].F, fid, bc)) {
+			object_pressed[i] = 1;
+
+			// Find triangle's vertexes coordinate - p1, p2, p3
+			Eigen::Vector3f p0;
+			p0[0] = scn->data_list[i].V.row(scn->data_list[i].F.row(fid)[0])[0];
+			p0[1] = scn->data_list[i].V.row(scn->data_list[i].F.row(fid)[0])[1];
+			p0[2] = scn->data_list[i].V.row(scn->data_list[i].F.row(fid)[0])[2];
+
+			Eigen::Vector3f p1;
+			p1[0] = scn->data_list[i].V.row(scn->data_list[i].F.row(fid)[1])[0];
+			p1[1] = scn->data_list[i].V.row(scn->data_list[i].F.row(fid)[1])[1];
+			p1[2] = scn->data_list[i].V.row(scn->data_list[i].F.row(fid)[1])[2];
+
+			Eigen::Vector3f p2;
+			p2[0] = scn->data_list[i].V.row(scn->data_list[i].F.row(fid)[2])[0];
+			p2[1] = scn->data_list[i].V.row(scn->data_list[i].F.row(fid)[2])[1];
+			p2[2] = scn->data_list[i].V.row(scn->data_list[i].F.row(fid)[2])[2];
+
+
+			Eigen::Vector3f p = p0 * bc[0] + p1 * bc[1] + p2 * bc[2]; // Create p using barycentric coordinate
+
+			Eigen::Vector4f p4; // Transform p from vector of size 3  to vector of size 4
+			p4[0] = p[0];
+			p4[1] = p[1];
+			p4[2] = p[2];
+			p4[3] = 1;
+
+			Eigen::Vector4f p_final = view * p4;
+			float distance = std::sqrt(p_final[0] * p_final[0] + p_final[1] * p_final[1] + p_final[2] * p_final[2]);
+			objects_distance[i] = distance;
 		}
-		return false;
-	
+	}
+
+	int min_distance_index = -1;
+	float min_distance = 100000000;
+
+	// Find the closest object within the mouse coordinates
+	for (int i = 0; i < scn->data_list.size(); i++) {
+		if(object_pressed[i] != -1 && objects_distance[i] < min_distance){
+			min_distance = objects_distance[i];
+			min_distance_index = i;
+		}
+	}
+	return min_distance_index;
 }
 
 IGL_INLINE void Renderer::resize(GLFWwindow* window,int w, int h)
