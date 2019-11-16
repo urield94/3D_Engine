@@ -4,12 +4,18 @@
 
 int main(int argc, char *argv[])
 {
+  if(argc < 2){
+    std::cout << "Please specify path to meshe files (as many as you wish).\nUsage - sandBox.exe full_path_to_mesh_1 full_path_to_mesh_2 .." << std::endl;
+    return  0;
+  }
+
   Display *disp = new Display(1000, 800, "Wellcome");
   Renderer renderer;
   igl::opengl::glfw::Viewer viewer;
 
-  viewer.load_mesh_from_file("/home/rochberg/CLionProjects/3D_Engine/tutorial/data/cube.obj");
-  viewer.load_mesh_from_file("/home/rochberg/CLionProjects/3D_Engine/tutorial/data/cow.off");
+  for(int i = 1; i < argc; i++){
+    viewer.load_mesh_from_file(argv[i]);
+  }
 
   Init(*disp);
   renderer.init(&viewer);
