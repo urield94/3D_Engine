@@ -136,7 +136,11 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 			rndr->ChangeCamera(key);
 			break;
 		}
-		case ';':
+		case ' ': {
+            rndr->simplification();
+            break;
+        }
+        case ';':
 			scn->data().show_vertid = !scn->data().show_vertid;
 			break;
 		case ':':

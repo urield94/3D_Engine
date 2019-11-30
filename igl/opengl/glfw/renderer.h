@@ -3,7 +3,8 @@
 #include <vector>
 #include <functional>
 #include <igl/opengl/ViewerCore.h>
-#include <igl/opengl/glfw/Viewer.h>
+//#include <igl/opengl/glfw/Viewer.h>
+#include "tutorial/sandBox/ViewerInh.h"
 
 struct GLFWwindow;
 
@@ -13,8 +14,8 @@ public:
 	Renderer();
 	~Renderer();
 	IGL_INLINE void draw( GLFWwindow* window);
-	IGL_INLINE void init(igl::opengl::glfw::Viewer* scn);
-	
+	IGL_INLINE void init(ViewerInh* scn);
+
 	//IGL_INLINE bool key_pressed(unsigned int unicode_key, int modifiers);
 
 		// Returns **true** if action should be cancelled.
@@ -85,10 +86,13 @@ public:
 	IGL_INLINE bool key_pressed(unsigned int unicode_key, int modifier);
 	IGL_INLINE void resize(GLFWwindow* window,int w, int h); // explicitly set window size
 	IGL_INLINE void post_resize(GLFWwindow* window, int w, int h); // external resize due to user interaction
-	void SetScene(igl::opengl::glfw::Viewer* scn);
+	void SetScene(ViewerInh* scn);
 	void UpdatePosition(double xpos, double ypos);
 	void MouseProcessing(int button);
-	inline igl::opengl::glfw::Viewer* GetScene() {
+
+	void simplification();
+
+	inline ViewerInh* GetScene() {
 		return scn;
 	}
 	inline void ChangeCamera(int unicode_key)
@@ -101,7 +105,7 @@ public:
 private:
 	// Stores all the viewing options
 	std::vector<igl::opengl::ViewerCore> core_list;
-	igl::opengl::glfw::Viewer* scn;
+    ViewerInh* scn;
 	size_t selected_core_index;
 	int next_core_id;
 	float highdpi;

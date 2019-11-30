@@ -73,17 +73,18 @@ IGL_INLINE void Renderer::draw( GLFWwindow* window)
 
 }
 
-void Renderer::SetScene(igl::opengl::glfw::Viewer* viewer)
+void Renderer::SetScene(ViewerInh* viewer)
 {
 	scn = viewer;
 }
 
-IGL_INLINE void Renderer::init(igl::opengl::glfw::Viewer* viewer)
+IGL_INLINE void Renderer::init(ViewerInh* viewer)
 {
 	scn = viewer;
 	core().init(); 
 
 	core().align_camera_center(scn->data().V, scn->data().F);
+	scn->init_ds_for_data();
 }
 
 void Renderer::UpdatePosition(double xpos, double ypos)
@@ -301,3 +302,10 @@ IGL_INLINE void Renderer::resize(GLFWwindow* window,int w, int h)
 	//		}
 	//	}
 	//}
+
+
+
+	void  Renderer::simplification(){
+
+		scn->simplification();
+}
