@@ -306,6 +306,5 @@ IGL_INLINE void Renderer::resize(GLFWwindow* window,int w, int h)
 
 
 	void  Renderer::simplification(){
-
 		scn->simplification();
-}
+    }
