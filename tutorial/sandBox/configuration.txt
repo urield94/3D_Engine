@@ -1,2 +1,2 @@
-/home/rochberg/CLionProjects/3D_Engine/tutorial/data/cow.off
+/home/rochberg/CLionProjects/3D_Engine/tutorial/data/bunny.off
 /home/rochberg/CLionProjects/3D_Engine/tutorial/data/cube.obj
