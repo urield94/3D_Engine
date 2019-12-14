@@ -3,22 +3,21 @@
 #include <vector>
 #include <functional>
 #include <igl/opengl/ViewerCore.h>
-//#include <igl/opengl/glfw/Viewer.h>
-#include "tutorial/sandBox/ViewerInh.h"
+#include <igl/opengl/glfw/Viewer.h>
 
 struct GLFWwindow;
 
-class Renderer 
+class Renderer
 {
 public:
 	Renderer();
 	~Renderer();
 	IGL_INLINE void draw( GLFWwindow* window);
-	IGL_INLINE void init(ViewerInh* scn);
+	IGL_INLINE void init(igl::opengl::glfw::Viewer* scn);
 
 	//IGL_INLINE bool key_pressed(unsigned int unicode_key, int modifiers);
 
-		// Returns **true** if action should be cancelled.
+	// Returns **true** if action should be cancelled.
 	std::function<bool(GLFWwindow* window)> callback_init;
 	std::function<bool(GLFWwindow* window)> callback_pre_draw;
 	std::function<bool(GLFWwindow* window)> callback_post_draw;
@@ -82,33 +81,29 @@ public:
 	// IGL_INLINE void select_hovered_core();
 
 	// Callbacks
-	 int Picking(double x, double y);
+	int Picking(double x, double y);
 	IGL_INLINE bool key_pressed(unsigned int unicode_key, int modifier);
 	IGL_INLINE void resize(GLFWwindow* window,int w, int h); // explicitly set window size
 	IGL_INLINE void post_resize(GLFWwindow* window, int w, int h); // external resize due to user interaction
-	void SetScene(ViewerInh* scn);
+	void SetScene(igl::opengl::glfw::Viewer* scn);
 	void UpdatePosition(double xpos, double ypos);
 	void MouseProcessing(int button);
-
-	void simplification();
-
-	inline ViewerInh* GetScene() {
+	inline igl::opengl::glfw::Viewer* GetScene() {
 		return scn;
 	}
 	inline void ChangeCamera(int unicode_key)
 	{
 		selected_core_index =
-			(selected_core_index + core_list.size() + (unicode_key == ']' ? 1 : -1)) % core_list.size();
+				(selected_core_index + core_list.size() + (unicode_key == ']' ? 1 : -1)) % core_list.size();
 
 	}
 
 private:
 	// Stores all the viewing options
 	std::vector<igl::opengl::ViewerCore> core_list;
-    ViewerInh* scn;
+	igl::opengl::glfw::Viewer* scn;
 	size_t selected_core_index;
 	int next_core_id;
 	float highdpi;
 	double xold, yold, xrel, yrel;
 };
-
