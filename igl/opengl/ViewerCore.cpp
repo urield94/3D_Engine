@@ -101,7 +101,7 @@ IGL_INLINE void igl::opengl::ViewerCore::clear_framebuffers()
 }
 
 IGL_INLINE void igl::opengl::ViewerCore::draw(
-  Eigen::Matrix4f worldMat,
+  const Eigen::Matrix4f worldMat,
   ViewerData& data,
   bool update_matrices)
 {
