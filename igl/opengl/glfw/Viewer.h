@@ -128,7 +128,8 @@ public:
     size_t selected_data_index;
     int next_data_id;
 
-
+    std::vector<int> parents;
+    int links_number = 0;
     
 
     // List of registered plugins

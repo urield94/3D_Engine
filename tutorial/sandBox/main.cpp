@@ -12,8 +12,11 @@ igl::opengl::glfw::Viewer load_meshes_from_conf() {
     newfile.open("configuration.txt", ios::in);
     if (newfile.is_open()) {
         string line;
+        int i = 0;
         while (getline(newfile, line)) {
-            viewer.load_mesh_from_file(line);
+            if(i==0) for(int j=0; j<4; j++) viewer.load_mesh_from_file(line);
+            else viewer.load_mesh_from_file(line);
+            i++;
         }
         newfile.close();
     }

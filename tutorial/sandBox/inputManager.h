@@ -12,14 +12,13 @@ static void glfw_mouse_press(GLFWwindow* window, int button, int action, int mod
 		glfwGetCursorPos(window, &x2, &y2);
 		igl::opengl::glfw::Viewer* scn = rndr->GetScene();
 		int closest_index = 0;
-		int savedIndx = scn->selected_data_index;
 
 		closest_index = rndr->Picking(x2, y2);
 
 		if(closest_index == -1)
 		{
 			std::cout << "not found " << std::endl;
-			scn->selected_data_index = savedIndx;
+			scn->selected_data_index = -1;
 		}
 		else {
 			scn->selected_data_index = closest_index;

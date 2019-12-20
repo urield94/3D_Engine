@@ -1,5 +1,2 @@
 /home/rochberg/CLionProjects/3D_Engine/tutorial/data/ycylinder.obj
-/home/rochberg/CLionProjects/3D_Engine/tutorial/data/ycylinder.obj
-/home/rochberg/CLionProjects/3D_Engine/tutorial/data/ycylinder.obj
-/home/rochberg/CLionProjects/3D_Engine/tutorial/data/ycylinder.obj
 /home/rochberg/CLionProjects/3D_Engine/tutorial/data/sphere.obj

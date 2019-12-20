@@ -101,14 +101,18 @@ void Renderer::draw_axis(igl::opengl::ViewerData & mesh){
 
 void Renderer::init_system(){
     int i = 0;
+    scn->parents.resize(scn->data_list.size()-1);
     for(; i < scn->data_list.size()-1; i++){
         scn->data_list[i].MyScale(Eigen::Vector3f(0.3,0.3,0.3));
         if(i!=0) scn->data_list[i].MyTranslate(Eigen::Vector3f(0,0.3*1.6*i-1,0));
         else scn->data_list[i].MyTranslate(Eigen::Vector3f(0,-1,0));
         if(i!=scn->data_list.size()-2) draw_axis(scn->data_list[i]);
+        scn->parents[i] = i - 1;
+        scn->links_number += 1;
     }
     scn->data_list[i].MyScale(Eigen::Vector3f(0.3,0.3,0.3));
     scn->data_list[i].MyTranslate(Eigen::Vector3f(1,0,0));
+    scn->parents[i] = -1;
 }
 
 IGL_INLINE void Renderer::init(igl::opengl::glfw::Viewer* viewer)
@@ -130,22 +134,25 @@ void Renderer::UpdatePosition(double xpos, double ypos)
     yold = ypos;
 }
 
-void Renderer::MouseProcessing(int button)
-{
 
-    if (button == 1)
-    {
-
-        scn->data().MyTranslate(Eigen::Vector3f(-xrel / 2000.0f, 0, 0));
-        scn->data().MyTranslate(Eigen::Vector3f(0,yrel / 2000.0f,0));
-
+void Renderer::MouseProcessing(int button) {
+    if (button == 1) {
+        if (scn->selected_data_index == -1) { // System Translate
+            scn->MyTranslate(Eigen::Vector3f(-xrel / 2000.0f, 0, 0));
+            scn->MyTranslate(Eigen::Vector3f(0, yrel / 2000.0f, 0));
+        } else {                              // Object Translate
+            scn->data().MyTranslate(Eigen::Vector3f(-xrel / 2000.0f, 0, 0));
+            scn->data().MyTranslate(Eigen::Vector3f(0, yrel / 2000.0f, 0));
+        }
+    } else {
+        if (scn->selected_data_index == -1) { // System Rotate
+            scn->MyRotate(Eigen::Vector3f(1, 0, 0), xrel / 180.0f);
+            scn->MyRotate(Eigen::Vector3f(0, 0, 1), yrel / 180.0f);
+        } else {                              // Object Rotate
+            scn->data().MyRotate(Eigen::Vector3f(1, 0, 0), xrel / 180.0f);
+            scn->data().MyRotate(Eigen::Vector3f(0, 0, 1), yrel / 180.0f);
+        }
     }
-    else
-    {
-        scn->data().MyRotate(Eigen::Vector3f(1,0,0),xrel / 180.0f);
-        scn->data().MyRotate(Eigen::Vector3f(0, 0,1),yrel / 180.0f);
-    }
-
 }
 
 Renderer::~Renderer()
