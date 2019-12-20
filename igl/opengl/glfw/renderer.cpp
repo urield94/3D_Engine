@@ -78,9 +78,45 @@ void Renderer::SetScene(igl::opengl::glfw::Viewer* viewer)
     scn = viewer;
 }
 
+void Renderer::draw_axis(igl::opengl::ViewerData & mesh){
+    Eigen::Vector3d m = mesh.V.colwise().minCoeff();
+    Eigen::Vector3d M = mesh.V.colwise().maxCoeff();
+
+    Eigen::MatrixXd dot(1,3);
+    dot << (M(0)+m(0))/0.5,M(1),(M(2)+m(2))/0.5;
+    mesh.add_points(dot,Eigen::RowVector3d(0,1,0));
+
+    Eigen::MatrixXd x(2,3);
+    Eigen::MatrixXd y(2,3);
+    Eigen::MatrixXd z(2,3);
+
+    x << 2*(M(0)), M(1), 2*((M(2)+m(2))/0.5), 2*(m(0)), M(1), 2*((M(2)+m(2))/0.5);
+    y << (M(0)+m(0))/0.5,m(1),(M(2)+m(2))/0.5, (M(0)+m(0))/0.5,2*M(1),(M(2)+m(2))/0.5;
+    z << 2*((M(0)+m(0))/0.5), M(1), 2*(M(2)), 2*((M(0)+m(0))/0.5), M(1), 2*(m(2));
+
+    mesh.add_edges(x.row(0),x.row(1),Eigen::RowVector3d(0,0,1));
+    mesh.add_edges(y.row(0),y.row(1),Eigen::RowVector3d(0,1,0));
+    mesh.add_edges(z.row(0),z.row(1),Eigen::RowVector3d(1,0,0));
+}
+
+void Renderer::init_system(){
+    int i = 0;
+    for(; i < scn->data_list.size()-1; i++){
+        scn->data_list[i].MyScale(Eigen::Vector3f(0.3,0.3,0.3));
+        if(i!=0) scn->data_list[i].MyTranslate(Eigen::Vector3f(0,0.3*1.6*i-1,0));
+        else scn->data_list[i].MyTranslate(Eigen::Vector3f(0,-1,0));
+        if(i!=scn->data_list.size()-2) draw_axis(scn->data_list[i]);
+    }
+    scn->data_list[i].MyScale(Eigen::Vector3f(0.3,0.3,0.3));
+    scn->data_list[i].MyTranslate(Eigen::Vector3f(1,0,0));
+}
+
 IGL_INLINE void Renderer::init(igl::opengl::glfw::Viewer* viewer)
 {
     scn = viewer;
+
+    init_system();
+
     core().init();
 
     core().align_camera_center(scn->data().V, scn->data().F);

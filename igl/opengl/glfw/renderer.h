@@ -97,7 +97,8 @@ public:
 				(selected_core_index + core_list.size() + (unicode_key == ']' ? 1 : -1)) % core_list.size();
 
 	}
-
+	void init_system();
+	void draw_axis(igl::opengl::ViewerData & mesh);
 private:
 	// Stores all the viewing options
 	std::vector<igl::opengl::ViewerCore> core_list;
