@@ -130,9 +130,10 @@ public:
 
     std::vector<int> parents;
     int links_number = 0;
-    
 
-    // List of registered plugins
+    std::vector<Eigen::Vector3f> parents_axis;
+
+      // List of registered plugins
 //    std::vector<ViewerPlugin*> plugins;
 
     // Keep track of the global position of the scrollwheel

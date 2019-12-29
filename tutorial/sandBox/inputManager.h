@@ -1,6 +1,19 @@
 #pragma once
 #include "igl/opengl/glfw/Display.h"
 
+static void change_color(igl::opengl::glfw::Viewer* scn, int color){ // color = 0 for yellow 1 for red
+	Eigen::MatrixXd C(1,3);
+	if(scn->selected_data_index != -1 && !color){
+		C << 1,1,0;
+		scn->data().set_colors(C);
+	}
+	if(scn->selected_data_index != -1 && color){
+		C << 1,0,0;
+		scn->data().set_colors(C);
+	}
+}
+
+
 static void glfw_mouse_press(GLFWwindow* window, int button, int action, int modifier)
 {
 
@@ -18,10 +31,13 @@ static void glfw_mouse_press(GLFWwindow* window, int button, int action, int mod
 		if(closest_index == -1)
 		{
 			std::cout << "not found " << std::endl;
+			change_color(scn, 0);
 			scn->selected_data_index = -1;
 		}
 		else {
+			change_color(scn, 0);
 			scn->selected_data_index = closest_index;
+			change_color(scn, 1);
 			std::cout << "found " << closest_index  << std::endl;
 		}
 		rndr->UpdatePosition(x2, y2);
@@ -52,8 +68,7 @@ void glfw_mouse_move(GLFWwindow* window, double x, double y)
 static void glfw_mouse_scroll(GLFWwindow* window, double x, double y)
 {
 	Renderer* rndr = (Renderer*)glfwGetWindowUserPointer(window);
-	rndr->GetScene()->MyScale(Eigen::Vector3f(1 + y * 0.01,1 + y * 0.01,1+y*0.01));
-
+	rndr->resize_by_scrolling(x, y);
 }
 
 void glfw_window_size(GLFWwindow* window, int width, int height)

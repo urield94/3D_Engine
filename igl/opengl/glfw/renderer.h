@@ -98,7 +98,9 @@ public:
 
 	}
 	void init_system();
-	void draw_axis(igl::opengl::ViewerData & mesh);
+	void draw_axis(igl::opengl::ViewerData & mesh, int i);
+	void resize_by_scrolling(double x, double y);
+
 private:
 	// Stores all the viewing options
 	std::vector<igl::opengl::ViewerCore> core_list;
@@ -107,4 +109,5 @@ private:
 	int next_core_id;
 	float highdpi;
 	double xold, yold, xrel, yrel;
+	bool prerotation = true;
 };
