@@ -3,12 +3,12 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "ViewerInh.h"
+
 
 using namespace std;
 
-ViewerInh load_meshes_from_conf() {
-    ViewerInh viewer;;
+igl::opengl::glfw::Viewer load_meshes_from_conf() {
+    igl::opengl::glfw::Viewer viewer;;
     fstream newfile;
     newfile.open("configuration.txt", ios::in);
     if (newfile.is_open()) {
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     Display *disp = new Display(1000, 800, "Wellcome");
     Renderer renderer;
 
-    ViewerInh viewer = load_meshes_from_conf();
+    igl::opengl::glfw::Viewer viewer = load_meshes_from_conf();
 
     Init(*disp);
     renderer.init(&viewer);
