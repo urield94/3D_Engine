@@ -84,6 +84,13 @@ IGL_INLINE void Renderer::init(igl::opengl::glfw::Viewer* viewer)
 	core().init(); 
 
 	core().align_camera_center(scn->data().V, scn->data().F);
+
+//	Scale
+	scn->data_list[0].MyScale(Eigen::Vector3f(0.5,0.5,0.5));
+	scn->data_list[1].MyScale(Eigen::Vector3f(0.5,0.5,0.5));
+//	Translate
+	scn->data_list[0].MyTranslate(Eigen::Vector3f(0.1,0.05,0));
+	scn->data_list[1].MyTranslate(Eigen::Vector3f(-0.1,0.05,0));
 }
 
 void Renderer::UpdatePosition(double xpos, double ypos)
