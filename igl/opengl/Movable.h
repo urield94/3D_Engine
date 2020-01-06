@@ -11,6 +11,7 @@ public:
 	void MyTranslate(Eigen::Vector3f amt);
 	void MyRotate(Eigen::Vector3f rotAxis,float angle);
 	void MyScale(Eigen::Vector3f amt);
+	void MoveLeft();
 private:
 	Eigen::Transform<float,3,Eigen::Affine> T;
 

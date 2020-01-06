@@ -24,3 +24,9 @@ void Movable::MyScale(Eigen::Vector3f amt)
 {
 	T.scale(amt);
 }
+
+void Movable::MoveLeft()
+{
+    T.pretranslate(Eigen::Vector3f(-1,0,0));
+}
+
