@@ -84,17 +84,19 @@ IGL_INLINE void Renderer::init(igl::opengl::glfw::Viewer* viewer)
 	core().init(); 
 
 	core().align_camera_center(scn->data().V, scn->data().F);
-
-//	Scale
-	scn->data_list[0].MyScale(Eigen::Vector3f(0.5,0.5,0.5));
-	scn->data_list[1].MyScale(Eigen::Vector3f(0.5,0.5,0.5));
+//	Scale and draw box
+	for(auto &mesh: scn->data_list){
+		mesh.MyScale(Eigen::Vector3f(0.29,0.29,0.29));
+		DrawBoxAndPoints(mesh);
+	}
 //	Translate
-	scn->data_list[0].MyTranslate(Eigen::Vector3f(0.1,0.05,0));
-	scn->data_list[1].MyTranslate(Eigen::Vector3f(-0.1,0.05,0));
+	scn->data_list[0].MyTranslate(Eigen::Vector3f(-0.15,0.07,0));
+	scn->data_list[1].MyTranslate(Eigen::Vector3f(0.15,0.07,0));
 //	Color selected mesh
 	Eigen::MatrixXd color(1,3);
 	color << 1,0,0;
 	scn->data().set_colors(color);
+
 }
 
 void Renderer::UpdatePosition(double xpos, double ypos)
@@ -316,9 +318,66 @@ IGL_INLINE void Renderer::resize(GLFWwindow* window,int w, int h)
 void Renderer::Animate() {
 	if (core().is_animating) {
 		if (scn->selected_data_index == 0) {
-			scn->data().MyTranslate(Eigen::Vector3f(-0.001, 0, 0));
+			scn->data().MyTranslate(Eigen::Vector3f(0.005, 0, 0));
 		} else if (scn->selected_data_index == 1) {
-			scn->data().MyTranslate(Eigen::Vector3f(0.001, 0, 0));
+			scn->data().MyTranslate(Eigen::Vector3f(-0.005, 0, 0));
 		}
 	}
+}
+
+void Renderer::DrawBoxAndPoints(igl::opengl::ViewerData & mesh){
+	mesh.line_width = 2;
+	mesh.show_overlay_depth = 0;
+	mesh.set_face_based(!mesh.face_based);
+	core().toggle(mesh.show_lines);
+	mesh.point_size = 10;
+
+	// Find the bounding box
+	Eigen::Vector3d m = mesh.V.colwise().minCoeff();
+	Eigen::Vector3d M = mesh.V.colwise().maxCoeff();
+
+	// Corners of the bounding box
+	Eigen::MatrixXd V_box(8,3);
+	V_box <<
+		  m(0), m(1), m(2),
+			M(0), m(1), m(2),
+			M(0), M(1), m(2),
+			m(0), M(1), m(2),
+			m(0), m(1), M(2),
+			M(0), m(1), M(2),
+			M(0), M(1), M(2),
+			m(0), M(1), M(2);
+
+	// Edges of the bounding box
+	Eigen::MatrixXi E_box(12,2);
+	E_box <<
+		  0, 1,
+			1, 2,
+			2, 3,
+			3, 0,
+			4, 5,
+			5, 6,
+			6, 7,
+			7, 4,
+			0, 4,
+			1, 5,
+			2, 6,
+			7 ,3;
+
+	// Plot the center of the bounding box, and center-of-rotation of the mesh
+	Eigen::MatrixXd center(1,3);
+	Eigen::MatrixXd center_of_rotation(1,3);
+	center << (M(0) + m(0)) * 0.5, (M(1) + m(1)) * 0.5, (M(2) + m(2)) * 0.5;
+	center_of_rotation << 0, 0,  0;
+	mesh.add_points(center,Eigen::RowVector3d(0,0,0));
+	mesh.add_points(center_of_rotation,Eigen::RowVector3d(0,0,1));
+
+	// Plot the edges of the bounding box
+	for (unsigned i=0;i<E_box.rows(); ++i)
+		mesh.add_edges
+				(
+						V_box.row(E_box(i,0)),
+						V_box.row(E_box(i,1)),
+						Eigen::RowVector3d(0,1,0)
+				);
 }

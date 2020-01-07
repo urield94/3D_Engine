@@ -100,6 +100,7 @@ public:
 
 	}
     void Animate();
+	void DrawBoxAndPoints(igl::opengl::ViewerData & mesh);
 
 private:
 	// Stores all the viewing options
