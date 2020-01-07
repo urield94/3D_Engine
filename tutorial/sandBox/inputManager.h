@@ -133,7 +133,7 @@ static void glfw_key_callback(GLFWwindow *window, int key, int scancode, int act
                 scn->data().show_faceid = !scn->data().show_faceid;
                 break;
             case ' ':
-                scn->data().MoveLeft();
+                rndr->core().is_animating = !rndr->core().is_animating;
                 break;
             case GLFW_KEY_LEFT://(left arrow)
                 std::cout << "Left rotation" << std::endl;

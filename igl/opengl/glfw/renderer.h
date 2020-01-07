@@ -99,6 +99,7 @@ public:
 			(selected_core_index + core_list.size() + (unicode_key == ']' ? 1 : -1)) % core_list.size();
 
 	}
+    void Animate();
 
 private:
 	// Stores all the viewing options

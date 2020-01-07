@@ -91,6 +91,10 @@ IGL_INLINE void Renderer::init(igl::opengl::glfw::Viewer* viewer)
 //	Translate
 	scn->data_list[0].MyTranslate(Eigen::Vector3f(0.1,0.05,0));
 	scn->data_list[1].MyTranslate(Eigen::Vector3f(-0.1,0.05,0));
+//	Color selected mesh
+	Eigen::MatrixXd color(1,3);
+	color << 1,0,0;
+	scn->data().set_colors(color);
 }
 
 void Renderer::UpdatePosition(double xpos, double ypos)
@@ -308,3 +312,13 @@ IGL_INLINE void Renderer::resize(GLFWwindow* window,int w, int h)
 	//		}
 	//	}
 	//}
+
+void Renderer::Animate() {
+	if (core().is_animating) {
+		if (scn->selected_data_index == 0) {
+			scn->data().MyTranslate(Eigen::Vector3f(-0.001, 0, 0));
+		} else if (scn->selected_data_index == 1) {
+			scn->data().MyTranslate(Eigen::Vector3f(0.001, 0, 0));
+		}
+	}
+}
