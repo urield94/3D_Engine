@@ -17,14 +17,16 @@ static void glfw_mouse_press(GLFWwindow *window, int button, int action, int mod
 
         if (closest_index == -1) {
             std::cout << "not found " << std::endl;
-            scn->selected_data_index = savedIndx;
+            scn->selected_data_index = -1;
             Eigen::MatrixXd color(1,3);
             color << 1,1,0;
-            scn->data().set_colors(color);
+            if(savedIndx != -1)
+                scn->data_list[savedIndx].set_colors(color);
         } else {
             Eigen::MatrixXd color(1,3);
             color << 1,1,0;
-            scn->data().set_colors(color);
+            if(savedIndx != -1)
+                scn->data().set_colors(color);
             scn->selected_data_index = closest_index;
             color << 1,0,0;
             scn->data().set_colors(color);

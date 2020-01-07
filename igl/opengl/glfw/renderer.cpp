@@ -112,15 +112,23 @@ void Renderer::MouseProcessing(int button)
 	
 	if (button == 1)
 	{
-
-		scn->data().MyTranslate(Eigen::Vector3f(-xrel / 2000.0f, 0, 0));
-		scn->data().MyTranslate(Eigen::Vector3f(0,yrel / 2000.0f,0));
-		
+		if(scn->selected_data_index == -1){
+			scn->MyTranslate(Eigen::Vector3f(-xrel / 2000.0f, 0, 0));
+			scn->MyTranslate(Eigen::Vector3f(0,yrel / 2000.0f,0));
+		}else {
+			scn->data().MyTranslate(Eigen::Vector3f(-xrel / 2000.0f, 0, 0));
+			scn->data().MyTranslate(Eigen::Vector3f(0, yrel / 2000.0f, 0));
+		}
 	}
 	else
 	{
-		scn->data().MyRotate(Eigen::Vector3f(1,0,0),xrel / 180.0f);
-		scn->data().MyRotate(Eigen::Vector3f(0, 0,1),yrel / 180.0f);
+		if(scn->selected_data_index == -1){
+			scn->MyRotate(Eigen::Vector3f(1, 0, 0), xrel / 180.0f);
+			scn->MyRotate(Eigen::Vector3f(0, 0, 1), yrel / 180.0f);
+		}else {
+			scn->data().MyRotate(Eigen::Vector3f(1, 0, 0), xrel / 180.0f);
+			scn->data().MyRotate(Eigen::Vector3f(0, 0, 1), yrel / 180.0f);
+		}
 	}
 	
 }
