@@ -55,8 +55,10 @@ void glfw_mouse_move(GLFWwindow *window, double x, double y) {
 
 static void glfw_mouse_scroll(GLFWwindow *window, double x, double y) {
     Renderer *rndr = (Renderer *) glfwGetWindowUserPointer(window);
-    rndr->GetScene()->data().MyScale(Eigen::Vector3f(1 + y * 0.01, 1 + y * 0.01, 1 + y * 0.01));
-
+    if(rndr->GetScene()->selected_data_index == -1)
+        rndr->GetScene()->MyScale(Eigen::Vector3f(1 + y * 0.01, 1 + y * 0.01, 1 + y * 0.01));
+    else
+        rndr->GetScene()->data().MyScale(Eigen::Vector3f(1 + y * 0.01, 1 + y * 0.01, 1 + y * 0.01));
 }
 
 void glfw_window_size(GLFWwindow *window, int width, int height) {
@@ -136,6 +138,12 @@ static void glfw_key_callback(GLFWwindow *window, int key, int scancode, int act
                 break;
             case ' ':
                 rndr->core().is_animating = !rndr->core().is_animating;
+                break;
+            case 'R':
+            case 'r':
+                scn->data_list[0].Reset();
+                scn->data_list[1].Reset();
+                rndr->Reset();
                 break;
             case GLFW_KEY_LEFT://(left arrow)
                 std::cout << "Left rotation" << std::endl;

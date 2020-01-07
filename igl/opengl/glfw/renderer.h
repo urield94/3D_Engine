@@ -101,7 +101,7 @@ public:
 	}
     void Animate();
 	void DrawBoxAndPoints(igl::opengl::ViewerData & mesh);
-
+	void Reset();
 private:
 	// Stores all the viewing options
 	std::vector<igl::opengl::ViewerCore> core_list;

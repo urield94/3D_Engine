@@ -4,6 +4,8 @@
 #include <igl/unproject_onto_mesh.h>
 #include "igl/look_at.h"
 #include <Eigen/Dense>
+#include "igl/AABB.h"
+
 Renderer::Renderer() : selected_core_index(0),
 next_core_id(2)
 {
@@ -84,19 +86,9 @@ IGL_INLINE void Renderer::init(igl::opengl::glfw::Viewer* viewer)
 	core().init(); 
 
 	core().align_camera_center(scn->data().V, scn->data().F);
-//	Scale and draw box
-	for(auto &mesh: scn->data_list){
-		mesh.MyScale(Eigen::Vector3f(0.29,0.29,0.29));
+	for(auto &mesh: scn->data_list)
 		DrawBoxAndPoints(mesh);
-	}
-//	Translate
-	scn->data_list[0].MyTranslate(Eigen::Vector3f(-0.15,0.07,0));
-	scn->data_list[1].MyTranslate(Eigen::Vector3f(0.15,0.07,0));
-//	Color selected mesh
-	Eigen::MatrixXd color(1,3);
-	color << 1,0,0;
-	scn->data().set_colors(color);
-
+	Reset();
 }
 
 void Renderer::UpdatePosition(double xpos, double ypos)
@@ -323,6 +315,20 @@ IGL_INLINE void Renderer::resize(GLFWwindow* window,int w, int h)
 	//	}
 	//}
 
+void Renderer::Reset(){
+//	Scale
+	scn->data_list[0].MyScale(Eigen::Vector3f(0.29,0.29,0.29));
+	scn->data_list[1].MyScale(Eigen::Vector3f(0.29,0.29,0.29));
+//	Translate
+	scn->data_list[0].MyTranslate(Eigen::Vector3f(-0.15,0.07,0));
+	scn->data_list[1].MyTranslate(Eigen::Vector3f(0.15,0.07,0));
+//	Color selected mesh
+	Eigen::MatrixXd color(1,3);
+	color << 1,0,0;
+	if(scn->selected_data_index != -1)
+		scn->data().set_colors(color);
+}
+
 void Renderer::Animate() {
 	if (core().is_animating) {
 		if (scn->selected_data_index == 0) {
@@ -388,4 +394,7 @@ void Renderer::DrawBoxAndPoints(igl::opengl::ViewerData & mesh){
 						V_box.row(E_box(i,1)),
 						Eigen::RowVector3d(0,1,0)
 				);
+
+	igl::AABB<Eigen::MatrixXd,3> tree;
+	tree.init(mesh.V,mesh.F);
 }
