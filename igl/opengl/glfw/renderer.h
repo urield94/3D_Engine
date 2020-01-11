@@ -4,6 +4,7 @@
 #include <functional>
 #include <igl/opengl/ViewerCore.h>
 #include <igl/opengl/glfw/Viewer.h>
+#include "igl/AABB.h"
 
 struct GLFWwindow;
 
@@ -102,6 +103,15 @@ public:
     void Animate();
 	void DrawBoxAndPoints(igl::opengl::ViewerData & mesh);
 	void Reset();
+    void DrawBox(igl::opengl::ViewerData &obj,
+                           Eigen::MatrixXd top_points,
+                           Eigen::MatrixXd bottom_points,
+                           Eigen::MatrixXd color);
+	bool IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerData &obj2,
+					   Eigen::AlignedBox<double, 3> box1, Eigen::AlignedBox<double, 3> box2);
+	void DrawBoxOfBox(igl::opengl::ViewerData &obj, Eigen::AlignedBox<double, 3> box);
+    bool IsColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerData &obj2);
+
 private:
 	// Stores all the viewing options
 	std::vector<igl::opengl::ViewerCore> core_list;
@@ -110,5 +120,6 @@ private:
 	int next_core_id;
 	float highdpi;
 	double xold, yold, xrel, yrel;
+	std::vector<igl::AABB<Eigen::MatrixXd,3>> trees;
 };
 

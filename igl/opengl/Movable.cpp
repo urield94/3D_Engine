@@ -21,6 +21,10 @@ void Movable::MyScale(Eigen::Vector3f amt) {
     T.scale(amt);
 }
 
+Eigen::Matrix3f Movable::GetRotationMatrix() {
+    return T.rotation().matrix();
+}
+
 void Movable::Reset(){
     T = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
 }

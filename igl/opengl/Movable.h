@@ -12,6 +12,7 @@ public:
 	void MyRotate(Eigen::Vector3f rotAxis,float angle);
 	void MyScale(Eigen::Vector3f amt);
 	void Reset();
+	Eigen::Matrix3f GetRotationMatrix();
 private:
 	Eigen::Transform<float,3,Eigen::Affine> T;
 
