@@ -138,11 +138,13 @@ static void glfw_key_callback(GLFWwindow *window, int key, int scancode, int act
                 break;
             case ' ':
                 rndr->core().is_animating = !rndr->core().is_animating;
+                scn->go_flag = true;
                 break;
             case 'R':
             case 'r':
                 scn->data_list[0].Reset();
                 scn->data_list[1].Reset();
+                scn->go_flag = true;
                 rndr->Reset();
                 break;
             case GLFW_KEY_LEFT://(left arrow)

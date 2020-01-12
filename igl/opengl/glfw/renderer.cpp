@@ -306,12 +306,13 @@ void Renderer::Reset() {
 }
 
 void Renderer::Animate() {
-    if (core().is_animating && !IsColide(scn->data_list[0], scn->data_list[1])) {
+    if (core().is_animating && !collide) {
         if (scn->selected_data_index == 0) {
             scn->data().MyTranslate(Eigen::Vector3f(0.005, 0, 0));
         } else if (scn->selected_data_index == 1) {
             scn->data().MyTranslate(Eigen::Vector3f(-0.005, 0, 0));
         }
+        collide = IsBoxesColide(scn->data_list[0], scn->data_list[1], trees[0], trees[1]);
     }
 }
 
@@ -385,156 +386,80 @@ void Renderer::DrawBoxOfBox(igl::opengl::ViewerData &obj, Eigen::AlignedBox<doub
     DrawBox(obj, top, bottom, Eigen::RowVector3d(1, 0, 1));
 }
 
-bool Renderer::IsColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerData &obj2) {
-    Eigen::AlignedBox<double, 3> big_box1 = trees[0].m_box;
-    Eigen::AlignedBox<double, 3> big_box2 = trees[1].m_box;
-    if(IsBoxesColide(obj1, obj2, big_box1, big_box2)){
-         igl::AABB<Eigen::MatrixXd,3> t1 = trees[0];
-         igl::AABB<Eigen::MatrixXd,3> t2 = trees[1];
-         igl::AABB<Eigen::MatrixXd,3>* l1 = t1.m_left;
-         igl::AABB<Eigen::MatrixXd,3>* l2 = t2.m_left;
-         bool turn1 = true;
-         while(!l1->is_leaf() || !l2->is_leaf()) {
-             if ((turn1 && !l1->is_leaf()) || (!turn1 && l2->is_leaf()))
-                 l1 = l1->m_left;
-             else if ((turn1 && l1->is_leaf()) || (!turn1 && !l2->is_leaf()))
-                 l2 = l2->m_left;
-             turn1 = !turn1;
-             Eigen::AlignedBox<double, 3> inner_box1 = l1->m_box;
-             Eigen::AlignedBox<double, 3> inner_box2 = l2->m_box;
 
-            if(IsBoxesColide(obj1, obj2, inner_box1, inner_box2)){
-                DrawBoxOfBox(obj1, inner_box1);
-                DrawBoxOfBox(obj2, inner_box2);
-                return true;
+bool Renderer::IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerData &obj2,
+                             igl::AABB<Eigen::MatrixXd, 3> tree1, igl::AABB<Eigen::MatrixXd, 3> tree2) {
+    Eigen::Matrix3f A_matrix = obj1.GetRotationMatrix(); Eigen::Matrix3f B_matrix = obj2.GetRotationMatrix();
+
+    Eigen::Vector3f A0 = A_matrix * Eigen::Vector3f(1, 0, 0); Eigen::Vector3f A1 = A_matrix * Eigen::Vector3f(0, 1, 0); Eigen::Vector3f A2 = A_matrix * Eigen::Vector3f(0, 0, 1);
+
+    Eigen::Vector3f B0 = B_matrix * Eigen::Vector3f(1, 0, 0); Eigen::Vector3f B1 = B_matrix * Eigen::Vector3f(0, 1, 0);Eigen::Vector3f B2 = B_matrix * Eigen::Vector3f(0, 0, 1);
+
+    Eigen::Matrix3f C = A_matrix.inverse() * B_matrix;
+
+    float a0 = tree1.m_box.sizes()[0] / 2; float a1 = tree1.m_box.sizes()[1] / 2; float a2 = tree1.m_box.sizes()[2] / 2;
+    float b0 = tree2.m_box.sizes()[0] / 2; float b1 = tree2.m_box.sizes()[1] / 2; float b2 = tree2.m_box.sizes()[2] / 2;
+
+    float c00 = C.row(0)(0); float c01 = C.row(0)(1); float c02 = C.row(0)(2);
+    float c10 = C.row(1)(0); float c11 = C.row(1)(1); float c12 = C.row(1)(2);
+    float c20 = C.row(2)(0); float c21 = C.row(2)(1); float c22 = C.row(2)(2);
+
+    Eigen::Vector4f C1; C1 << tree1.m_box.center()[0], tree1.m_box.center()[1], tree1.m_box.center()[2], 1;
+    Eigen::Vector4f C2; C2 << tree2.m_box.center()[0], tree2.m_box.center()[1], tree2.m_box.center()[2], 1;
+
+    Eigen::Vector3f C1_scn = (obj1.MakeTrans() * C1).head(3);
+    Eigen::Vector3f C2_scn = (obj2.MakeTrans() * C2).head(3);
+
+    Eigen::Vector3f D = C2_scn - C1_scn;
+
+    if(!OBBCheckSat({A0,A1,A2,B0,B1,B2,a0,a1,a2,b0,b1,b2,c00,c01,c02,c10,c11,c12,c20,c21,c22,D})){
+        if(tree1.is_leaf()) {
+            if (tree2.is_leaf()) {
+                    DrawBoxOfBox(obj1, tree1.m_box);
+                    DrawBoxOfBox(obj2, tree2.m_box);
+                    return true;
+            } else {
+                return IsBoxesColide(obj1, obj2, tree1, *tree2.m_left) || IsBoxesColide(obj1, obj2, tree1, *tree2.m_right);
             }
-         }
+        }
+        else if(tree2.is_leaf()) {
+            return IsBoxesColide(obj1, obj2, *tree1.m_left, tree2) || IsBoxesColide(obj1, obj2, *tree1.m_right, tree2);
+        }
+        else {
+            return  IsBoxesColide(obj1, obj2, *tree1.m_left, *tree2.m_left) ||
+                    IsBoxesColide(obj1, obj2, *tree1.m_right, *tree2.m_left)||
+                    IsBoxesColide(obj1, obj2, *tree1.m_left, *tree2.m_right)||
+                    IsBoxesColide(obj1, obj2, *tree1.m_right, *tree2.m_right);
+        }
     }
     return false;
 }
 
+bool Renderer::OBBCheckSat(OBBSatVars vars){
+    bool test1  = vars.a0 + (vars.b0 * abs(vars.c00) + vars.b1 * abs(vars.c01) + vars.b2 * abs(vars.c02)) < abs(vars.A0.dot(vars.D));
+    bool test2  = vars.a1 + (vars.b0 * abs(vars.c10) + vars.b1 * abs(vars.c11) + vars.b2 * abs(vars.c12)) < abs(vars.A1.dot(vars.D));
+    bool test3  = vars.a2 + (vars.b0 * abs(vars.c20) + vars.b1 * abs(vars.c21) + vars.b2 * abs(vars.c22)) < abs(vars.A2.dot(vars.D));
 
-bool Renderer::IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerData &obj2,
-                             Eigen::AlignedBox<double, 3> box1, Eigen::AlignedBox<double, 3> box2){
+    bool test4  = (vars.a0 * abs(vars.c00) + vars.a1 * abs(vars.c10) + vars.a2 * abs(vars.c20)) + vars.b0 < abs(vars.B0.dot(vars.D));
+    bool test5  = (vars.a0 * abs(vars.c01) + vars.a1 * abs(vars.c11) + vars.a2 * abs(vars.c21)) + vars.b1 < abs(vars.B1.dot(vars.D));
+    bool test6  = (vars.a0 * abs(vars.c02) + vars.a1 * abs(vars.c12) + vars.a2 * abs(vars.c22)) + vars.b2 < abs(vars.B2.dot(vars.D));
 
-    Eigen::Matrix3f A_matrix = obj1.GetRotationMatrix();
-    Eigen::Matrix3f B_matrix = obj2.GetRotationMatrix();
+    bool test7  = (vars.a1 * abs(vars.c20) + vars.a2 * abs(vars.c10)) + (vars.b1 * abs(vars.c02) + vars.b2 * abs(vars.c01)) < abs(vars.c10 * vars.A2.dot(vars.D) - vars.c20 * vars.A1.dot(vars.D));
+    bool test8  = (vars.a1 * abs(vars.c21) + vars.a2 * abs(vars.c11)) + (vars.b0 * abs(vars.c02) + vars.b2 * abs(vars.c00)) < abs(vars.c11 * vars.A2.dot(vars.D) - vars.c21 * vars.A1.dot(vars.D));
+    bool test9  = (vars.a1 * abs(vars.c22) + vars.a2 * abs(vars.c12)) + (vars.b0 * abs(vars.c01) + vars.b1 * abs(vars.c00)) < abs(vars.c12 * vars.A2.dot(vars.D) - vars.c22 * vars.A1.dot(vars.D));
 
-    Eigen::Vector3f A0 = A_matrix * Eigen::Vector3f(1, 0, 0);
-    Eigen::Vector3f A1 = A_matrix * Eigen::Vector3f(0, 1, 0);
-    Eigen::Vector3f A2 = A_matrix * Eigen::Vector3f(0, 0, 1);
+    bool test10 = (vars.a0 * abs(vars.c20) + vars.a2 * abs(vars.c00)) + (vars.b1 * abs(vars.c12) + vars.b2 * abs(vars.c11)) < abs(vars.c20 * vars.A0.dot(vars.D) - vars.c00 * vars.A2.dot(vars.D));
+    bool test11 = (vars.a0 * abs(vars.c21) + vars.a2 * abs(vars.c01)) + (vars.b0 * abs(vars.c12) + vars.b2 * abs(vars.c10)) < abs(vars.c21 * vars.A0.dot(vars.D) - vars.c01 * vars.A2.dot(vars.D));
+    bool test12 = (vars.a0 * abs(vars.c22) + vars.a2 * abs(vars.c02)) + (vars.b0 * abs(vars.c11) + vars.b1 * abs(vars.c10)) < abs(vars.c22 * vars.A0.dot(vars.D) - vars.c02 * vars.A2.dot(vars.D));
 
-    Eigen::Vector3f B0 = B_matrix * Eigen::Vector3f(1, 0, 0);
-    Eigen::Vector3f B1 = B_matrix * Eigen::Vector3f(0, 1, 0);
-    Eigen::Vector3f B2 = B_matrix * Eigen::Vector3f(0, 0, 1);
+    bool test13 = (vars.a0 * abs(vars.c10) + vars.a1 * abs(vars.c00)) + (vars.b1 * abs(vars.c22) + vars.b2 * abs(vars.c21)) <  abs(vars.c00 * vars.A1.dot(vars.D) - vars.c10 * vars.A0.dot(vars.D));
+    bool test14 = (vars.a0 * abs(vars.c11) + vars.a1 * abs(vars.c01)) + (vars.b0 * abs(vars.c22) + vars.b2 * abs(vars.c20)) <  abs(vars.c01 * vars.A1.dot(vars.D) - vars.c11 * vars.A0.dot(vars.D));
+    bool test15 = (vars.a0 * abs(vars.c12) + vars.a1 * abs(vars.c02)) + (vars.b0 * abs(vars.c21) + vars.b1 * abs(vars.c20)) <  abs(vars.c02 * vars.A1.dot(vars.D) - vars.c12 * vars.A0.dot(vars.D));
 
-    Eigen::Matrix3f C = A_matrix.inverse() * B_matrix;
-
-    double a0 = box1.sizes()(0) / 2; double a1 = box1.sizes()(1) / 2; double a2 = box1.sizes()(2) / 2;
-    double b0 = box2.sizes()(0) / 2; double b1 = box2.sizes()(1) / 2; double b2 = box2.sizes()(2) / 2;
-
-    double c00 = C.row(0)(0); double c01 = C.row(0)(1); double c02 = C.row(0)(2);
-    double c10 = C.row(1)(0); double c11 = C.row(1)(1); double c12 = C.row(1)(2);
-    double c20 = C.row(2)(0); double c21 = C.row(2)(1); double c22 = C.row(2)(2);
-
-    Eigen::Vector4f C1; C1 << box1.center()(0), box1.center()(1), box1.center()(2), 1;
-    Eigen::Vector4f C2; C2 << box2.center()(0), box2.center()(1), box2.center()(2), 1;
-
-    Eigen::Vector4f C1_scn = obj1.MakeTrans() * C1;
-    Eigen::Vector4f C2_scn = obj2.MakeTrans() * C2;
-
-    Eigen::Vector4f D_vec4 = C1_scn - C2_scn;
-    Eigen::Vector3f D; D << D_vec4(0), D_vec4(1), D_vec4(2);
-
-    double R0, R1, R;
-
-    //    Test-1
-    R0 = a0;
-    R1 = b0 * abs(c00) + b1 * abs(c01) + b2 * abs(c02);
-    R = abs(A0.dot(D));
-    if (R > R0 + R1)
-        return false;
-    //    Test-2
-    R0 = a1;
-    R1 = b0 * abs(c10) + b1 * abs(c11) + b2 * abs(c12);
-    R = abs(A1.dot(D));
-    if (R > R0 + R1)
-        return false;
-    //    Test-3
-    R0 = a2;
-    R1 = b0 * abs(c20) + b1 * abs(c21) + b2 * abs(c22);
-    R = abs(A2.dot(D));
-    if (R > R0 + R1)
-        return false;
-    //    Test-4
-    R0 = a0 * abs(c00) + a1 * abs(c10) + a2 * abs(c20);
-    R1 = b0;
-    R = abs(B0.dot(D));
-    if (R > R0 + R1)
-        return false;
-    //    Test-5
-    R0 = a0 * abs(c01) + a1 * abs(c11) + a2 * abs(c21);
-    R1 = b1;
-    R = abs(B1.dot(D));
-    if (R > R0 + R1)
-        return false;
-    //    Test-6
-    R0 = a0 * abs(c02) + a1 * abs(c12) + a2 * abs(c22);
-    R1 = b2;
-    R = abs(B2.dot(D));
-    if (R > R0 + R1)
-        return false;
-    //    Test-7
-    R0 = a1 * abs(c20) + a2 * abs(c10);
-    R1 = b1 * abs(c02) + b2 * abs(c01);
-    R = abs(c10 * A2.dot(D) - c20 * A1.dot(D));
-    if (R > R0 + R1)
-        return false;
-    //    Test-8
-    R0 = a1 * abs(c21) + a2 * abs(c11);
-    R1 = b0 * abs(c02) + b2 * abs(c00);
-    R = abs(c11 * A2.dot(D) - c21 * A1.dot(D));
-    if (R > R0 + R1)
-        return false;
-    //    Test-9
-    R0 = a1 * abs(c22) + a2 * abs(c12);
-    R1 = b0 * abs(c01) + b1 * abs(c00);
-    R = abs(c12 * A2.dot(D) - c22 * A1.dot(D));
-    if (R > R0 + R1)
-        return false;
-    //    Test-10
-    R0 = a0 * abs(c20) + a2 * abs(c00);
-    R1 = b1 * abs(c12) + b2 * abs(c11);
-    R = abs(c20 * A0.dot(D) - c00 * A2.dot(D));
-    if (R > R0 + R1)
-        return false;
-    //    Test-11
-    R0 = a0 * abs(c21) + a2 * abs(c01);
-    R1 = b0 * abs(c12) + b2 * abs(c10);
-    R = abs(c21 * A0.dot(D) - c01 * A2.dot(D));
-    if (R > R0 + R1)
-        return false;
-    //    Test-12
-    R0 = a0 * abs(c22) + a2 * abs(c02);
-    R1 = b0 * abs(c11) + b1 * abs(c10);
-    R = abs(c22 * A0.dot(D) - c02 * A2.dot(D));
-    if (R > R0 + R1)
-        return false;
-    //    Test-13
-    R0 = a0 * abs(c10) + a1 * abs(c00);
-    R1 = b1 * abs(c22) + b2 * abs(c21);
-    R = abs(c00 * A1.dot(D) - c10 * A0.dot(D));
-    if (R > R0 + R1)
-        return false;
-    //    Test-14
-    R0 = a0 * abs(c11) + a1 * abs(c01);
-    R1 = b0 * abs(c22) + b2 * abs(c20);
-    R = abs(c01 * A1.dot(D) - c11 * A0.dot(D));
-    if (R > R0 + R1)
-        return false;
-    //    Test-15
-    R0 = a0 * abs(c12) + a1 * abs(c02);
-    R1 = b0 * abs(c21) + b1 * abs(c20);
-    R = abs(c02 * A1.dot(D) - c12 * A0.dot(D));
-    return R <= R0 + R1;
+    return test1 || test2 || test3 || test4 || test5 ||
+           test6 || test7 || test8 || test9 ||test10 ||
+           test11|| test12||test13 || test14||test15;
 }
+
+
+

@@ -127,7 +127,7 @@ public:
 
     size_t selected_data_index;
     int next_data_id;
-
+    bool go_flag = true;
 
     
 

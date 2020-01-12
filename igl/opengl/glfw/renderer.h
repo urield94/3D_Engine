@@ -108,9 +108,21 @@ public:
                            Eigen::MatrixXd bottom_points,
                            Eigen::MatrixXd color);
 	bool IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerData &obj2,
-					   Eigen::AlignedBox<double, 3> box1, Eigen::AlignedBox<double, 3> box2);
+					   igl::AABB<Eigen::MatrixXd, 3> tree1, igl::AABB<Eigen::MatrixXd, 3> tree2);
 	void DrawBoxOfBox(igl::opengl::ViewerData &obj, Eigen::AlignedBox<double, 3> box);
     bool IsColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerData &obj2);
+    bool TreesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerData &obj2,
+                     igl::AABB<Eigen::MatrixXd,3> * ch1, igl::AABB<Eigen::MatrixXd,3> *ch2);
+   typedef struct OBBSatVars{
+	   Eigen::Vector3f A0; Eigen::Vector3f A1; Eigen::Vector3f A2;
+	   Eigen::Vector3f B0; Eigen::Vector3f B1; Eigen::Vector3f B2;
+	   float a0; float a1; float a2; float b0; float b1; float b2;
+	   float c00; float c01; float c02;
+	   float c10; float c11; float c12;
+	   float c20; float c21; float c22;
+	   Eigen::Vector3f D;
+   }OBBSatVars;
+	bool OBBCheckSat(OBBSatVars vars);
 
 private:
 	// Stores all the viewing options
@@ -121,5 +133,6 @@ private:
 	float highdpi;
 	double xold, yold, xrel, yrel;
 	std::vector<igl::AABB<Eigen::MatrixXd,3>> trees;
+	bool collide = false;
 };
 
