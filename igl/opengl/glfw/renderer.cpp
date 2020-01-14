@@ -293,11 +293,11 @@ IGL_INLINE int Renderer::append_core(Eigen::Vector4f viewport, bool append_empty
 
 void Renderer::Reset() {
 //	Scale
-    scn->data_list[0].MyScale(Eigen::Vector3f(0.29, 0.29, 0.29));
-    scn->data_list[1].MyScale(Eigen::Vector3f(0.29, 0.29, 0.29));
+    if(scn->MakeTrans().row(0)(0) == 1)
+        scn->MyScale(Eigen::Vector3f(0.29, 0.29, 0.29));
 //	Translate
-    scn->data_list[0].MyTranslate(Eigen::Vector3f(-0.15, 0.07, 0));
-    scn->data_list[1].MyTranslate(Eigen::Vector3f(0.15, 0.07, 0));
+    scn->data_list[0].MyTranslate(Eigen::Vector3f(-0.50, 0.20, 0));
+    scn->data_list[1].MyTranslate(Eigen::Vector3f(0.50, 0.20, 0));
 //	Color selected mesh
     Eigen::MatrixXd color(1, 3);
     color << 1, 0, 0;
@@ -306,13 +306,13 @@ void Renderer::Reset() {
 }
 
 void Renderer::Animate() {
-    if (core().is_animating && !collide) {
+    if (core().is_animating && !IsBoxesColide(scn->data_list[0], scn->data_list[1], trees[0], trees[1])) {
         if (scn->selected_data_index == 0) {
-            scn->data().MyTranslate(Eigen::Vector3f(0.005, 0, 0));
+            scn->data().MyTranslate(Eigen::Vector3f(0.015, 0, 0));
         } else if (scn->selected_data_index == 1) {
-            scn->data().MyTranslate(Eigen::Vector3f(-0.005, 0, 0));
+
+            scn->data().MyTranslate(Eigen::Vector3f(-0.015, 0, 0));
         }
-        collide = IsBoxesColide(scn->data_list[0], scn->data_list[1], trees[0], trees[1]);
     }
 }
 
@@ -372,7 +372,7 @@ void Renderer::DrawBoxAndPoints(igl::opengl::ViewerData &obj) {
     obj.add_points(center_of_rotation, Eigen::RowVector3d(0, 0, 1));
 }
 
-void Renderer::DrawBoxOfBox(igl::opengl::ViewerData &obj, Eigen::AlignedBox<double, 3> box){
+void Renderer::DrawSmallBox(igl::opengl::ViewerData &obj, Eigen::AlignedBox<double, 3> box){
     Eigen::MatrixXd top(4, 3);
     top << box.corner(box.TopLeftCeil)(0),box.corner(box.TopLeftCeil)(1),box.corner(box.TopLeftCeil)(2),
             box.corner(box.TopRightCeil)(0),box.corner(box.TopRightCeil)(1),box.corner(box.TopRightCeil)(2),
@@ -395,7 +395,7 @@ bool Renderer::IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerD
 
     Eigen::Vector3f B0 = B_matrix * Eigen::Vector3f(1, 0, 0); Eigen::Vector3f B1 = B_matrix * Eigen::Vector3f(0, 1, 0);Eigen::Vector3f B2 = B_matrix * Eigen::Vector3f(0, 0, 1);
 
-    Eigen::Matrix3f C = A_matrix.inverse() * B_matrix;
+    Eigen::Matrix3f C = A_matrix.transpose() * B_matrix;
 
     float a0 = tree1.m_box.sizes()[0] / 2; float a1 = tree1.m_box.sizes()[1] / 2; float a2 = tree1.m_box.sizes()[2] / 2;
     float b0 = tree2.m_box.sizes()[0] / 2; float b1 = tree2.m_box.sizes()[1] / 2; float b2 = tree2.m_box.sizes()[2] / 2;
@@ -415,8 +415,8 @@ bool Renderer::IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerD
     if(!OBBCheckSat({A0,A1,A2,B0,B1,B2,a0,a1,a2,b0,b1,b2,c00,c01,c02,c10,c11,c12,c20,c21,c22,D})){
         if(tree1.is_leaf()) {
             if (tree2.is_leaf()) {
-                    DrawBoxOfBox(obj1, tree1.m_box);
-                    DrawBoxOfBox(obj2, tree2.m_box);
+                    DrawSmallBox(obj1, tree1.m_box);
+                    DrawSmallBox(obj2, tree2.m_box);
                     return true;
             } else {
                 return IsBoxesColide(obj1, obj2, tree1, *tree2.m_left) || IsBoxesColide(obj1, obj2, tree1, *tree2.m_right);

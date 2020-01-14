@@ -109,7 +109,7 @@ public:
                            Eigen::MatrixXd color);
 	bool IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerData &obj2,
 					   igl::AABB<Eigen::MatrixXd, 3> tree1, igl::AABB<Eigen::MatrixXd, 3> tree2);
-	void DrawBoxOfBox(igl::opengl::ViewerData &obj, Eigen::AlignedBox<double, 3> box);
+	void DrawSmallBox(igl::opengl::ViewerData &obj, Eigen::AlignedBox<double, 3> box);
     bool IsColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerData &obj2);
     bool TreesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerData &obj2,
                      igl::AABB<Eigen::MatrixXd,3> * ch1, igl::AABB<Eigen::MatrixXd,3> *ch2);
