@@ -86,6 +86,7 @@ public:
 	IGL_INLINE void resize(GLFWwindow* window,int w, int h); // explicitly set window size
 	IGL_INLINE void post_resize(GLFWwindow* window, int w, int h); // external resize due to user interaction
 	void SetScene(igl::opengl::glfw::Viewer* scn);
+    Eigen::Matrix4f CalcParentsTrans(int index);
 	void UpdatePosition(double xpos, double ypos);
 	void MouseProcessing(int button);
 	inline igl::opengl::glfw::Viewer* GetScene() {
@@ -98,7 +99,7 @@ public:
 
 	}
 	void init_system();
-	void draw_axis(igl::opengl::ViewerData & mesh, int i);
+	void draw_axis(igl::opengl::ViewerData & mesh);
 	void resize_by_scrolling(double x, double y);
 
 private:

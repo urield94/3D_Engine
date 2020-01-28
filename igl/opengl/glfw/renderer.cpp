@@ -66,11 +66,21 @@ IGL_INLINE void Renderer::draw( GLFWwindow* window)
         {
             if (mesh.is_visible & core.id)
             {
-                core.draw(scn->MakeTrans(),mesh);
+                Eigen::Matrix4f scn_trans = scn->MakeConnectedTrans() * CalcParentsTrans(mesh.id);
+                core.draw(scn_trans,mesh);
             }
         }
     }
 
+}
+
+Eigen::Matrix4f Renderer::CalcParentsTrans(int index) {
+    if (index <= 0 || index == scn->data_list.size()-1) {
+
+        return Eigen::Matrix4f::Identity();
+    }
+
+    return CalcParentsTrans(index-1) * scn->data_list[index-1].MakeConnectedTrans();
 }
 
 void Renderer::SetScene(igl::opengl::glfw::Viewer* viewer)
@@ -78,7 +88,7 @@ void Renderer::SetScene(igl::opengl::glfw::Viewer* viewer)
     scn = viewer;
 }
 
-void Renderer::draw_axis(igl::opengl::ViewerData & mesh, int i){
+void Renderer::draw_axis(igl::opengl::ViewerData & mesh){
     Eigen::Vector3d m = mesh.V.colwise().minCoeff();
     Eigen::Vector3d M = mesh.V.colwise().maxCoeff();
 
@@ -101,40 +111,39 @@ void Renderer::draw_axis(igl::opengl::ViewerData & mesh, int i){
     mesh.add_edges(x.row(0),x.row(1),Eigen::RowVector3d(1,0,0));
     mesh.add_edges(y.row(0),y.row(1),Eigen::RowVector3d(0,1,0));
     mesh.add_edges(z.row(0),z.row(1),Eigen::RowVector3d(0,0,1));
-
-    float x_ = (x.row(0)(0) + x.row(1)(0))/2;
-    float y_ = m(1);
-    float z_ = (z.row(0)(2) + z.row(1)(2))/2;
-//    scn->data_list[i].SetCenterOfRotation(Eigen::Vector3f(x_,y_,z_));
 }
 
 void Renderer::init_system(){
     int i = 0;
-    scn->parents.resize(scn->data_list.size()-1);
+    scn->links.resize(scn->data_list.size()-1);
     scn->parents_axis.resize(scn->data_list.size()-1);
+
     for(; i < scn->data_list.size()-1; i++){
-        scn->data_list[i].MyScale(Eigen::Vector3f(0.3,0.3,0.3));
         scn->data_list[i].line_width = 3;
         scn->data_list[i].show_overlay_depth = 0;
         scn->data_list[i].point_size = 10;
-        scn->parents[i] = i - 1;
         scn->links_number += 1;
         scn->data_list[i].set_face_based(!scn->data_list[i].face_based);
         core().toggle(scn->data_list[i].show_lines);
 
-        if(i!=0){
-            scn->data_list[i].MyTranslate(Eigen::Vector3f(0,0.3*1.6*i-1,0), prerotation);
-        }
-        else{
-            scn->data_list[i].MyTranslate(Eigen::Vector3f(0,-1,0), prerotation);
-        }
         if(i != scn->data_list.size()-2){
-            draw_axis(scn->data_list[i], i);
+            draw_axis(scn->data_list[i]);
         }
-//        scn->data_list[i].SetCenterOfRotation(Eigen::Vector3f(0,0.3*1.6*i-1,0));
+
+        Eigen::Vector3d m = scn->data_list[i].V.colwise().minCoeff();
+        Eigen::Vector3d M = scn->data_list[i].V.colwise().maxCoeff();
+        double link_height = M(1) - m(1);
+        scn->links[i].parent = i - 1;
+        scn->links[i].height = link_height;
+        scn->data_list[i].SetCenterOfRotation(Eigen::Vector3f(scn->data_list[i].V.colwise().mean()[0], m[1], scn->data_list[i].V.colwise().mean()[0]));
+
+        if(i == 0)
+            scn->data_list[i].MyTranslate(Eigen::Vector3f(0, 0, 0));
+        else
+            scn->data_list[i].MyTranslate(Eigen::Vector3f(0, link_height, 0));
     }
-    scn->data_list[i].MyScale(Eigen::Vector3f(0.3,0.3,0.3));
-    scn->data_list[i].MyTranslate(Eigen::Vector3f(1,0,0),prerotation);
+    scn->data_list[i].MyTranslate(Eigen::Vector3f(5,0,0));
+    scn->MyScale(Eigen::Vector3f(0.2,0.2,0.2));
 }
 
 IGL_INLINE void Renderer::init(igl::opengl::glfw::Viewer* viewer)
@@ -177,20 +186,17 @@ void Renderer::UpdatePosition(double xpos, double ypos)
 void Renderer::MouseProcessing(int button) {
     if (button == 1) {
         if (scn->selected_data_index == -1) { // System Translate
-            scn->MyTranslate(Eigen::Vector3f(-xrel / 2000.0f, 0, 0),true);
-            scn->MyTranslate(Eigen::Vector3f(0, yrel / 2000.0f, 0),true);
-
-//            Eigen::Matrix4f view = Eigen::Matrix4f::Identity();
-//            igl::look_at(core().camera_eye, core().camera_center, core().camera_up, view);
-//            view = view * (core().trackball_angle * Eigen::Scaling(core().camera_zoom * core().camera_base_zoom)
-//                           * Eigen::Translation3f(core().camera_translation + core().camera_base_translation)).matrix() * scn->MakeTrans()*scn->data_list[0].MakeTrans();
-//
-//            scn->TranslateInSystem(view, Eigen::Vector3f(0, yrel / 2000.0f, 0), prerotation);
-//            scn->TranslateInSystem(view, Eigen::Vector3f(-xrel / 2000.0f, 0, 0), prerotation);
+            scn->TranslateInSystem(scn->MakeTrans(), Eigen::Vector3f(-xrel / 200.0f, 0, 0), prerotation);
+            scn->TranslateInSystem(scn->MakeTrans(), Eigen::Vector3f(0, yrel / 200.0f, 0), prerotation);
 
         } else {                              // Object Translate
-            scn->data().MyTranslate(Eigen::Vector3f(-xrel / 2000.0f, 0, 0),prerotation);
-            scn->data().MyTranslate(Eigen::Vector3f(0, yrel / 2000.0f, 0),prerotation);
+            if(scn->selected_data_index == scn->data_list.size()-1){
+                scn->data().MyTranslate(Eigen::Vector3f(-xrel / 200.0f, 0, 0));
+                scn->data().MyTranslate(Eigen::Vector3f(0, yrel / 200.0f, 0));
+            } else {
+                scn->data_list[0].MyTranslate(Eigen::Vector3f(-xrel / 200.0f, 0, 0));
+                scn->data_list[0].MyTranslate(Eigen::Vector3f(0, yrel / 200.0f, 0));
+            }
         }
     } else {
         if (scn->selected_data_index == -1) { // System Rotate
@@ -199,29 +205,14 @@ void Renderer::MouseProcessing(int button) {
 //            igl::look_at(core().camera_eye, core().camera_center, core().camera_up, view);
 //            view = view * (core().trackball_angle * Eigen::Scaling(core().camera_zoom * core().camera_base_zoom)
 //                           * Eigen::Translation3f(core().camera_translation + core().camera_base_translation)).matrix() * scn->MakeTrans();
-//            scn->RotateInSystem(view, Eigen::Vector3f(1, 0, 0), xrel / 180.0f );
-//            scn->RotateInSystem(view, Eigen::Vector3f(0, 0, 1), yrel / 180.0f);
-            scn->MyRotate(Eigen::Vector3f(1, 0, 0), xrel / 180.0f);
-            scn->MyRotate(Eigen::Vector3f(0, 0, 1), yrel / 180.0f);
-        } else {                              // Object Rotate
-
-//            Eigen::Matrix4f view = Eigen::Matrix4f::Identity();
-//            igl::look_at(core().camera_eye, core().camera_center, core().camera_up, view);
-//            view = view * (core().trackball_angle * Eigen::Scaling(core().camera_zoom * core().camera_base_zoom)
-//                           * Eigen::Translation3f(core().camera_translation + core().camera_base_translation)).matrix() * scn->MakeTrans() * scn->data_list[i].MakeTrans();
-
             prerotation = false;
-            size_t i = scn->selected_data_index;
-            if(i < scn->links_number){
-                while(i < scn->links_number){
-                    scn->data_list[i].MyRotate(Eigen::Vector3f(1, 0, 0), xrel / 180.0f);
-                    scn->data_list[i].MyRotate(Eigen::Vector3f(0, 0, 1), yrel / 180.0f);
-                    i++;
-                }
-            }else {
+            scn->RotateInSystem(scn->MakeTrans(), Eigen::Vector3f(1, 0, 0), xrel / 180.0f );
+            scn->RotateInSystem(scn->MakeTrans(), Eigen::Vector3f(0, 0, 1), yrel / 180.0f);
+//            scn->MyRotate(Eigen::Vector3f(1, 0, 0), xrel / 180.0f);
+//            scn->MyRotate(Eigen::Vector3f(0, 0, 1), yrel / 180.0f);
+        } else {                              // Object Rotate
                 scn->data().MyRotate(Eigen::Vector3f(1, 0, 0), xrel / 180.0f);
                 scn->data().MyRotate(Eigen::Vector3f(0, 0, 1), yrel / 180.0f);
-            }
         }
     }
 }
@@ -244,12 +235,12 @@ int Renderer::Picking(double newx, double newy)
         double y = core().viewport(3) - newy;
 
         object_pressed[i] = -1;
-        objects_distance[i] = 100000001;
+        objects_distance[i] = INFINITY;
 
         Eigen::Matrix4f view = Eigen::Matrix4f::Identity();
         igl::look_at(core().camera_eye, core().camera_center, core().camera_up, view);
         view = view * (core().trackball_angle * Eigen::Scaling(core().camera_zoom * core().camera_base_zoom)
-                       * Eigen::Translation3f(core().camera_translation + core().camera_base_translation)).matrix() * scn->MakeTrans() * scn->data_list[i].MakeTrans();
+                       * Eigen::Translation3f(core().camera_translation + core().camera_base_translation)).matrix() * scn->MakeConnectedTrans() * CalcParentsTrans(i) *scn->data_list[i].MakeConnectedTrans();
 
         if (igl::unproject_onto_mesh(Eigen::Vector2f(x, y), view,
                                      core().proj, core().viewport, scn->data_list[i].V, scn->data_list[i].F, fid, bc)) {
@@ -270,7 +261,21 @@ int Renderer::Picking(double newx, double newy)
             p2[0] = scn->data_list[i].V.row(scn->data_list[i].F.row(fid)[2])[0];
             p2[1] = scn->data_list[i].V.row(scn->data_list[i].F.row(fid)[2])[1];
             p2[2] = scn->data_list[i].V.row(scn->data_list[i].F.row(fid)[2])[2];
-
+//            int p1, p2, p3;
+//            p1 = scn->data_list[i].F.row(fid)[0];
+//            p2 = scn->data_list[i].F.row(fid)[1];
+//            p3 = scn->data_list[i].F.row(fid)[2];
+//            Eigen::Vector3f v1(scn->data_list[i].V.row(p1)[0], scn->data_list[i].V.row(p1)[1], scn->data_list[i].V.row(p1)[2]);
+//            Eigen::Vector3f v2(scn->data_list[i].V.row(p2)[0], scn->data_list[i].V.row(p2)[1], scn->data_list[i].V.row(p2)[2]);
+//            Eigen::Vector3f v3(scn->data_list[i].V.row(p3)[0], scn->data_list[i].V.row(p3)[1], scn->data_list[i].V.row(p3)[2]);
+//            Eigen::Vector3f b(v1[0]*bc[0]+v2[0]*bc[1]+v3[0]*bc[2],
+//                              v1[1] * bc[0] + v2[1] * bc[1] + v3[1] * bc[2],
+//                              v1[2] * bc[0] + v2[2] * bc[1] + v3[2] * bc[2]);
+//            Eigen::Vector4f p(4);
+//            p << b, 1;
+//            Eigen::Vector4f distance(4);
+//            distance = view * p;
+//            objects_distance[i] = distance.norm();
 
             Eigen::Vector3f p = p0 * bc[0] + p1 * bc[1] + p2 * bc[2]; // Create p using barycentric coordinate
 
@@ -287,7 +292,7 @@ int Renderer::Picking(double newx, double newy)
     }
 
     int min_distance_index = -1;
-    float min_distance = 100000000;
+    float min_distance = INFINITY;
 
     // Find the closest object within the mouse coordinates
     for (int i = 0; i < scn->data_list.size(); i++) {

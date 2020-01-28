@@ -1,5 +1,6 @@
 #pragma once
 #include "igl/opengl/glfw/Display.h"
+#include <igl/look_at.h>
 
 static void change_color(igl::opengl::glfw::Viewer* scn, int color){ // color = 0 for yellow 1 for red
 	Eigen::MatrixXd C(1,3);
@@ -68,7 +69,26 @@ void glfw_mouse_move(GLFWwindow* window, double x, double y)
 static void glfw_mouse_scroll(GLFWwindow* window, double x, double y)
 {
 	Renderer* rndr = (Renderer*)glfwGetWindowUserPointer(window);
-	rndr->resize_by_scrolling(x, y);
+//	rndr->resize_by_scrolling(x, y);
+	igl::opengl::glfw::Viewer* scn = rndr->GetScene();
+	Eigen::Matrix4f view = Eigen::Matrix4f::Identity(); // get identity matrix of view
+	igl::look_at(rndr->core().camera_eye, rndr->core().camera_center, rndr->core().camera_up, view);
+	view = view * (rndr->core().trackball_angle * Eigen::Scaling(rndr->core().camera_zoom * rndr->core().camera_base_zoom)
+				   * Eigen::Translation3f(rndr->core().camera_translation + rndr->core().camera_base_translation)).matrix()
+		   * rndr->GetScene()->MakeConnectedTrans();
+
+
+	if (scn->selected_data_index == -1) {
+		rndr->GetScene()->MyTranslate((view * Eigen::Vector4f(0, 0, 1, 1)).head(3) * y * 0.01);
+	}
+	else {
+		if (scn->selected_data_index == scn->data_list.size() - 1) {
+			rndr->GetScene()->data().ScaleAndTranslate((view * Eigen::Vector4f(0, 0, 1, 1)).head(3) * y * 0.01, scn);
+		}
+		else {
+			rndr->GetScene()->data_list[0].ScaleAndTranslate((view * Eigen::Vector4f(0, 0, 1, 1)).head(3) * y * 0.01, scn);
+		}
+	}
 }
 
 void glfw_window_size(GLFWwindow* window, int width, int height)
@@ -155,6 +175,22 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 				break;
 			case ':':
 				scn->data().show_faceid = !scn->data().show_faceid;
+				break;
+			case GLFW_KEY_LEFT://(left arrow)
+				std::cout << "Left rotation" << std::endl;
+				scn->data().MyRotate(Eigen::Vector3f(0,-1,0),0.1);
+				break;
+			case GLFW_KEY_UP://(up arrow)
+				std::cout << "up rotation" << std::endl;
+				scn->data().MyRotate(Eigen::Vector3f(-1,0,0),0.1);
+				break;
+			case GLFW_KEY_RIGHT://(right arrow)
+				std::cout << "right rotation" << std::endl;
+				scn->data().MyRotate(Eigen::Vector3f(0,1,0),0.1);
+				break;
+			case GLFW_KEY_DOWN ://(down arrow)
+				std::cout << "down rotation" << std::endl;
+				scn->data().MyRotate(Eigen::Vector3f(1,0,0),0.1);
 				break;
 			default: break;//do nothing
 		}

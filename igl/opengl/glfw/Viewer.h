@@ -127,8 +127,11 @@ public:
 
     size_t selected_data_index;
     int next_data_id;
-
-    std::vector<int> parents;
+    struct link{
+        int parent;
+        double height;
+    };
+    std::vector<link> links;
     int links_number = 0;
 
     std::vector<Eigen::Vector3f> parents_axis;

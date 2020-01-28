@@ -140,7 +140,7 @@ IGL_INLINE void igl::opengl::ViewerCore::draw(
     look_at( camera_eye, camera_center, camera_up, view);
     view = view
       * (trackball_angle * Eigen::Scaling(camera_zoom * camera_base_zoom)
-      * Eigen::Translation3f(camera_translation + camera_base_translation)).matrix()* worldMat*data.MakeTrans();
+      * Eigen::Translation3f(camera_translation + camera_base_translation)).matrix()* worldMat*data.MakeConnectedTrans();
 
     norm = view.inverse().transpose() ;
 
