@@ -122,6 +122,9 @@ bool Display::launch_rendering(bool loop)
 	{
 
 		double tic = igl::get_seconds();
+		if (renderer->should_animate) {
+			renderer->IK_Solver();
+		}
 		renderer->draw(window);
 		glfwSwapBuffers(window);
 		if (renderer->core().is_animating || frame_counter++ < num_extra_frames)

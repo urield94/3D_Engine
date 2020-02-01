@@ -69,26 +69,7 @@ void glfw_mouse_move(GLFWwindow* window, double x, double y)
 static void glfw_mouse_scroll(GLFWwindow* window, double x, double y)
 {
 	Renderer* rndr = (Renderer*)glfwGetWindowUserPointer(window);
-//	rndr->resize_by_scrolling(x, y);
-	igl::opengl::glfw::Viewer* scn = rndr->GetScene();
-	Eigen::Matrix4f view = Eigen::Matrix4f::Identity(); // get identity matrix of view
-	igl::look_at(rndr->core().camera_eye, rndr->core().camera_center, rndr->core().camera_up, view);
-	view = view * (rndr->core().trackball_angle * Eigen::Scaling(rndr->core().camera_zoom * rndr->core().camera_base_zoom)
-				   * Eigen::Translation3f(rndr->core().camera_translation + rndr->core().camera_base_translation)).matrix()
-		   * rndr->GetScene()->MakeConnectedTrans();
-
-
-	if (scn->selected_data_index == -1) {
-		rndr->GetScene()->MyTranslate((view * Eigen::Vector4f(0, 0, 1, 1)).head(3) * y * 0.01);
-	}
-	else {
-		if (scn->selected_data_index == scn->data_list.size() - 1) {
-			rndr->GetScene()->data().ScaleAndTranslate((view * Eigen::Vector4f(0, 0, 1, 1)).head(3) * y * 0.01, scn);
-		}
-		else {
-			rndr->GetScene()->data_list[0].ScaleAndTranslate((view * Eigen::Vector4f(0, 0, 1, 1)).head(3) * y * 0.01, scn);
-		}
-	}
+	rndr->resize_by_scrolling(x, y);
 }
 
 void glfw_window_size(GLFWwindow* window, int width, int height)
@@ -175,6 +156,9 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 				break;
 			case ':':
 				scn->data().show_faceid = !scn->data().show_faceid;
+				break;
+			case ' ':
+				rndr->should_animate = !rndr->should_animate;
 				break;
 			case GLFW_KEY_LEFT://(left arrow)
 				std::cout << "Left rotation" << std::endl;

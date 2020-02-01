@@ -103,7 +103,9 @@ IGL_INLINE void igl::opengl::ViewerCore::clear_framebuffers()
 IGL_INLINE void igl::opengl::ViewerCore::draw(
   const Eigen::Matrix4f worldMat,
   ViewerData& data,
-  bool update_matrices)
+  int object_index,
+  bool update_matrices
+  )
 {
   using namespace std;
   using namespace Eigen;
@@ -123,7 +125,6 @@ IGL_INLINE void igl::opengl::ViewerCore::draw(
     data.dirty = MeshGL::DIRTY_NONE;
   }
   data.meshgl.bind_mesh();
-
   // Initialize uniform
   glViewport(viewport(0), viewport(1), viewport(2), viewport(3));
 
@@ -140,7 +141,7 @@ IGL_INLINE void igl::opengl::ViewerCore::draw(
     look_at( camera_eye, camera_center, camera_up, view);
     view = view
       * (trackball_angle * Eigen::Scaling(camera_zoom * camera_base_zoom)
-      * Eigen::Translation3f(camera_translation + camera_base_translation)).matrix()* worldMat*data.MakeConnectedTrans();
+      * Eigen::Translation3f(camera_translation + camera_base_translation)).matrix()* worldMat*data.GetConnectedTransIfNeeded(data.id, object_index);
 
     norm = view.inverse().transpose() ;
 
@@ -306,7 +307,7 @@ IGL_INLINE void igl::opengl::ViewerCore::draw_buffer(Eigen::Matrix4f &worldMat, 
   Eigen::Vector4f viewport_ori = viewport;
   viewport << 0,0,width,height;
   // Draw
-  draw(worldMat,data,update_matrices);
+  draw(worldMat,data,-1, update_matrices);
   // Restore viewport
   viewport = viewport_ori;
 

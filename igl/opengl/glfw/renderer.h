@@ -86,7 +86,6 @@ public:
 	IGL_INLINE void resize(GLFWwindow* window,int w, int h); // explicitly set window size
 	IGL_INLINE void post_resize(GLFWwindow* window, int w, int h); // external resize due to user interaction
 	void SetScene(igl::opengl::glfw::Viewer* scn);
-    Eigen::Matrix4f CalcParentsTrans(int index);
 	void UpdatePosition(double xpos, double ypos);
 	void MouseProcessing(int button);
 	inline igl::opengl::glfw::Viewer* GetScene() {
@@ -101,6 +100,19 @@ public:
 	void init_system();
 	void draw_axis(igl::opengl::ViewerData & mesh);
 	void resize_by_scrolling(double x, double y);
+	void IK_Solver();
+	bool should_animate = false;
+
+	Eigen::Matrix4f GetAncestorTrans(int link_index);
+	Eigen::Matrix4f GetAncestorTransIfNeeded(int index){
+		return ((index <= 0 || index >= scn->links_number) ? Eigen::Matrix4f::Identity() : GetAncestorTrans(index));
+	};
+
+	Eigen::Matrix3f GetAncestorInverse(int link_index);
+	Eigen::Matrix3f GetAncestorInverseIfNeeded(int index){
+		return ((index <= 0 || index >= scn->links_number) ? Eigen::Matrix3f::Identity() : GetAncestorInverse(index));
+	};
+
 
 private:
 	// Stores all the viewing options

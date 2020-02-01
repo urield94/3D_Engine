@@ -14,7 +14,7 @@ igl::opengl::glfw::Viewer load_meshes_from_conf() {
         string line;
         int i = 0;
         while (getline(newfile, line)) {
-            if(i==0) for(int j=0; j<4; j++) viewer.load_mesh_from_file(line);
+            if(i==0) for(int j=0; j<10; j++) viewer.load_mesh_from_file(line);
             else viewer.load_mesh_from_file(line);
             i++;
         }
