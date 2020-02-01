@@ -84,30 +84,6 @@ Eigen::Matrix3f Renderer::GetAncestorInverse(int link_index) {
     return links;
 }
 
-void Renderer::draw_axis(igl::opengl::ViewerData &mesh) {
-    Eigen::Vector3d m = mesh.V.colwise().minCoeff();
-    Eigen::Vector3d M = mesh.V.colwise().maxCoeff();
-
-    Eigen::MatrixXd dot(2, 3);
-    dot << (M(0) + m(0)) * 2, M(1), (M(2) + m(2)) * 2,
-            (M(0) + m(0)) * 2, m(1), (M(2) + m(2)) * 2;
-    mesh.add_points(dot, Eigen::RowVector3d(0, 0, 1));
-
-    Eigen::MatrixXd x(2, 3);
-    Eigen::MatrixXd y(2, 3);
-    Eigen::MatrixXd z(2, 3);
-
-    x << 4 * (M(0)), M(1), 4 * ((M(2) + m(2))),
-            4 * (m(0)), M(1), 4 * ((M(2) + m(2)));
-    y << (M(0) + m(0)) / 0.5, m(1), (M(2) + m(2)) / 0.5,
-            (M(0) + m(0)) / 0.5, 3 * M(1), (M(2) + m(2)) / 0.5;
-    z << 4 * ((M(0) + m(0))), M(1), 4 * (M(2)),
-            4 * ((M(0) + m(0))), M(1), 4 * (m(2));
-
-    mesh.add_edges(x.row(0), x.row(1), Eigen::RowVector3d(1, 0, 0));
-    mesh.add_edges(y.row(0), y.row(1), Eigen::RowVector3d(0, 1, 0));
-    mesh.add_edges(z.row(0), z.row(1), Eigen::RowVector3d(0, 0, 1));
-}
 
 void Renderer::init_system() {
     int i = 0;
@@ -122,9 +98,6 @@ void Renderer::init_system() {
         scn->data_list[i].set_face_based(!scn->data_list[i].face_based);
         core().toggle(scn->data_list[i].show_lines);
 
-        if (i != scn->data_list.size() - 2) {
-//            draw_axis(scn->data_list[i]);
-        }
 
         Eigen::Vector3d m = scn->data_list[i].V.colwise().minCoeff();
         Eigen::Vector3d M = scn->data_list[i].V.colwise().maxCoeff();
@@ -139,7 +112,6 @@ void Renderer::init_system() {
     }
     scn->data_list[i].MyPreTranslate(Eigen::Vector3f(5, 0, 0));
     scn->data_list[0].MyPreTranslate(Eigen::Vector3f(0, -1, 0));
-//    scn->data_list[0].ScaleAndTranslate(Eigen::Vector3f(0.2,0.7,0.7), scn, prerotation);
 
     scn->MyScale(Eigen::Vector3f(0.2, 0.2, 0.2));
 }
@@ -150,8 +122,9 @@ IGL_INLINE void Renderer::init(igl::opengl::glfw::Viewer *viewer) {
     init_system();
 
     core().init();
-
     core().align_camera_center(scn->data().V, scn->data().F);
+
+
 }
 
 
@@ -395,3 +368,21 @@ void Renderer::IK_Solver() {
     }
 }
 
+IGL_INLINE int Renderer::append_core(Eigen::Vector4f viewport, bool append_empty /*= false*/)
+{
+    core_list.push_back(core()); // copies the previous active core and only changes the viewport
+    core_list.back().viewport = viewport;
+    core_list.back().id = next_core_id;
+    next_core_id <<= 1;
+    if (!append_empty)
+    {
+        for (auto& data : scn->data_list)
+        {
+//            core_list.back().
+            data.set_visible(true, core_list.back().id);
+            data.copy_options(core(), core_list.back());
+        }
+    }
+    selected_core_index = core_list.size() - 1;
+    return core_list.back().id;
+}

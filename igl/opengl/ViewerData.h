@@ -7,6 +7,7 @@
 // obtain one at http://mozilla.org/MPL/2.0/.
 #ifndef IGL_VIEWERDATA_H
 #define IGL_VIEWERDATA_H
+#include "ViewerCore.h"
 
 #include "../igl_inline.h"
 #include "MeshGL.h"
@@ -145,7 +146,7 @@ public:
   IGL_INLINE void grid_texture();
 
   // Copy visualization options from one viewport to another
-  //IGL_INLINE void copy_options(const ViewerCore &from, const ViewerCore &to);
+  IGL_INLINE void copy_options(ViewerCore &from, ViewerCore &to);
 
   Eigen::MatrixXd V; // Vertices of the current mesh (#V x 3)
   Eigen::MatrixXi F; // Faces of the mesh (#F x 3)

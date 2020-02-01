@@ -25,7 +25,6 @@ public:
 	Eigen::Transform<float,3,Eigen::Affine> Tin; //Parent
     void TranslateInSystem(Eigen::Matrix4f mat, Eigen::Vector3f amt);
     void RotateInSystem(Eigen::Vector3f rotAxis, float angle);
-	void ScaleAndTranslate(Eigen::Vector3f amt, Movable* scn, bool prerotation);
 private:
 	Eigen::Transform<float,3,Eigen::Affine> T; //Self
 };

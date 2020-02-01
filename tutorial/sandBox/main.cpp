@@ -27,13 +27,18 @@ int main(int argc, char *argv[]) {
 
     std::ifstream input("configuration.txt");
 
-    Display *disp = new Display(1000, 800, "Wellcome");
+    Display *disp = new Display(1800, 950, "Wellcome");
     Renderer renderer;
 
     igl::opengl::glfw::Viewer viewer = load_meshes_from_conf();
 
     Init(*disp);
     renderer.init(&viewer);
+
+    // Add another point of view screen
+    renderer.core().viewport = Eigen::Vector4f(0, 0, 900, 950);
+    renderer.append_core(Eigen::Vector4f(900, 0, 900, 950));
+
     disp->SetRenderer(&renderer);
     disp->launch_rendering(true);
 
