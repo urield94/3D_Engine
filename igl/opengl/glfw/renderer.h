@@ -4,6 +4,7 @@
 #include <functional>
 #include <igl/opengl/ViewerCore.h>
 #include <igl/opengl/glfw/Viewer.h>
+#include "igl/AABB.h"
 
 struct GLFWwindow;
 
@@ -113,6 +114,13 @@ public:
 		return ((index <= 0 || index >= scn->links_number) ? Eigen::Matrix3f::Identity() : GetAncestorInverse(index));
 	};
 
+    void DrawBox(igl::opengl::ViewerData &obj,
+                 Eigen::MatrixXd top_points,
+                 Eigen::MatrixXd bottom_points,
+                 Eigen::MatrixXd color);
+    bool IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerData &obj2,
+                       igl::AABB<Eigen::MatrixXd, 3> tree1, igl::AABB<Eigen::MatrixXd, 3> tree2);
+    void DrawSmallBox(igl::opengl::ViewerData &obj, Eigen::AlignedBox<double, 3> box);
 
 private:
 	// Stores all the viewing options
@@ -123,4 +131,15 @@ private:
 	float highdpi;
 	double xold, yold, xrel, yrel;
 	bool prerotation = true;
+	std::vector<igl::AABB<Eigen::MatrixXd,3>> trees;
+    typedef struct OBBSatVars{
+        Eigen::Vector3f A0; Eigen::Vector3f A1; Eigen::Vector3f A2;
+        Eigen::Vector3f B0; Eigen::Vector3f B1; Eigen::Vector3f B2;
+        float a0; float a1; float a2; float b0; float b1; float b2;
+        float c00; float c01; float c02;
+        float c10; float c11; float c12;
+        float c20; float c21; float c22;
+        Eigen::Vector3f D;
+    }OBBSatVars;
+    bool OBBCheckSat(OBBSatVars vars);
 };

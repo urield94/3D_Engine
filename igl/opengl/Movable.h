@@ -10,7 +10,7 @@ public:
 	Eigen::Matrix4f MakeTrans();
 	Eigen::Matrix4f MakeConnectedTrans();
 	Eigen::Matrix4f GetConnectedTransIfNeeded(int index, int object_index){
-		return ((index == object_index) ? MakeTrans() : MakeConnectedTrans());
+		return ((index >= object_index) ? MakeTrans() : MakeConnectedTrans());
 	};
 
 	void MyPreTranslate(Eigen::Vector3f amt);
