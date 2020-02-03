@@ -35,6 +35,13 @@ static void glfw_mouse_press(GLFWwindow* window, int button, int action, int mod
 			change_color(scn, 0);
 			scn->selected_data_index = -1;
 		}
+		else if(closest_index > scn->links_number - 1){
+            change_color(scn, 0);
+            scn->selected_data_index = closest_index;
+            change_color(scn, 1);
+			std::cout << "found " << closest_index  << std::endl;
+            rndr->object_picked = true;
+		}
 		else {
 			change_color(scn, 0);
 			scn->selected_data_index = closest_index;
@@ -158,7 +165,7 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 				scn->data().show_faceid = !scn->data().show_faceid;
 				break;
 			case ' ':
-				rndr->should_animate = !rndr->should_animate;
+				rndr->object_picked = !rndr->object_picked;
 				break;
 			case GLFW_KEY_LEFT://(left arrow)
 				std::cout << "Left rotation" << std::endl;

@@ -102,7 +102,7 @@ public:
 	void draw_axis(igl::opengl::ViewerData & mesh);
 	void resize_by_scrolling(double x, double y);
 	void IK_Solver();
-	bool should_animate = false;
+	bool object_picked = false;
 
 	Eigen::Matrix4f GetAncestorTrans(int link_index);
 	Eigen::Matrix4f GetAncestorTransIfNeeded(int index){

@@ -133,8 +133,9 @@ public:
     };
     std::vector<link> links;
     int links_number = 0;
+    double snake_length = 0;
 
-    std::vector<Eigen::Vector3f> parents_axis;
+      std::vector<Eigen::Vector3f> parents_axis;
 
       // List of registered plugins
 //    std::vector<ViewerPlugin*> plugins;
@@ -144,6 +145,7 @@ public:
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+      double snake_scale_factor = 0;
   };
 
 } // end namespace

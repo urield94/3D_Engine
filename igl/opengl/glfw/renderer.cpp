@@ -4,6 +4,7 @@
 #include <igl/unproject_onto_mesh.h>
 #include "igl/look_at.h"
 #include <Eigen/Dense>
+#include <cstdlib>
 
 Renderer::Renderer() : selected_core_index(0),
                        next_core_id(2) {
@@ -57,6 +58,7 @@ IGL_INLINE void Renderer::draw(GLFWwindow *window) {
         core.clear_framebuffers();
     }
 
+    //TODO START - CHANGE POINT OF VIEW TO BE FROM THE SNAKE EYES.
     int last_link_index = (scn->links_number - 1);
     Eigen::Vector4f last_link =  Eigen::Vector4f(scn->data_list[last_link_index].V.colwise().mean()[0],
                                                  scn->data_list[last_link_index].V.colwise().maxCoeff()[1],
@@ -66,12 +68,41 @@ IGL_INLINE void Renderer::draw(GLFWwindow *window) {
     core(1).camera_eye =  curr_last_link_E.normalized();
     core(1).camera_translation = last_link.head(3).normalized();
     core(1).camera_up = Eigen::Vector3f(0, scn->data_list[last_link_index].V.colwise().maxCoeff()[1], 0).normalized();
-    
+    //TODO END
 
     for (auto &core : core_list) {
         for (auto &mesh : scn->data_list) {
             if (mesh.is_visible & core.id) {
                 Eigen::Matrix4f scn_trans = scn->MakeTrans() * GetAncestorTransIfNeeded(mesh.id);
+                if(scn->mesh_index(mesh.id) > scn->links_number - 1) {
+                    if((mesh.MakeTrans().col(3)(0) > 8 && mesh.MakeTrans().col(3)(1) > 8 && mesh.MakeTrans().col(3)(2) > 8) ||
+                    (mesh.MakeTrans().col(3)(0) < -8 && mesh.MakeTrans().col(3)(1) < -8 && mesh.MakeTrans().col(3)(2) < -8)){
+                        scn->erase_mesh(scn->mesh_index(mesh.id));
+                    }else{
+                        //TODO START - CHANGE SPEED ON LEVEL UP, YOU CAN CHANGE ALL MOVING MECHANISM TO A RANDOM MECHANISM
+                        int i = scn->mesh_index(mesh.id);
+                        if(i < scn->links_number + 4) {
+                            mesh.MyTranslate(Eigen::Vector3f(0.005,
+                                                             0.002,
+                                                             0.003));
+                        }else if(i < scn->links_number + 8) {
+                            mesh.MyTranslate(Eigen::Vector3f(-0.005,
+                                                             0.002,
+                                                             0.003));
+                        }else if(i < scn->links_number + 12){
+                            mesh.MyTranslate(Eigen::Vector3f(0.005,
+                                                            -0.002,
+                                                             0.003));
+                        }
+                        else{
+                            mesh.MyTranslate(Eigen::Vector3f(-0.005,
+                                                             0.002,
+                                                             -0.003));
+                        }
+                        //TODO END
+
+                    };
+                }
                 core.draw(scn_trans, mesh, scn->links_number);
             }
         }
@@ -79,8 +110,10 @@ IGL_INLINE void Renderer::draw(GLFWwindow *window) {
 
 }
 
+
 Eigen::Matrix4f Renderer::GetAncestorTrans(int link_index) {
     Eigen::Matrix4f links = Eigen::Matrix4f::Identity();
+//    links.row(1)(1) = scn->snake_scale_factor;
     for(int i = 0; i < link_index; i++){
         links = links * scn->data_list[i].MakeConnectedTrans();
     }
@@ -98,31 +131,31 @@ Eigen::Matrix3f Renderer::GetAncestorInverse(int link_index) {
 
 void Renderer::init_system() {
     int i = 0;
-    scn->links.resize(scn->data_list.size() - 1);
-    scn->parents_axis.resize(scn->data_list.size() - 1);
-    float scale_factor = 0.6;
-    for (; i < scn->data_list.size() - 1; i++) {
+//    scn->data_list[0].MyScale(Eigen::Vector3f(1,scn->snake_scale_factor,1));
+    for (; i < scn->links_number; i++) {
         scn->data_list[i].line_width = 3;
         scn->data_list[i].show_overlay_depth = 0;
         scn->data_list[i].point_size = 10;
-        scn->links_number += 1;
         scn->data_list[i].set_face_based(!scn->data_list[i].face_based);
         core().toggle(scn->data_list[i].show_lines);
 
         Eigen::Vector3d m = scn->data_list[i].V.colwise().minCoeff();
         Eigen::Vector3d M = scn->data_list[i].V.colwise().maxCoeff();
         double link_height = M(1) - m(1);
-        scn->data_list[i].SetCenterOfRotation(Eigen::Vector3f(scn->data_list[i].V.colwise().mean()[0], m[1],
+        scn->data_list[i].SetCenterOfRotation(Eigen::Vector3f(scn->data_list[i].V.colwise().mean()[0],
+                                                              m[1],
                                                               scn->data_list[i].V.colwise().mean()[0]));
-
         if (i == 0)
             scn->data_list[i].MyPreTranslate(Eigen::Vector3f(0, 0, 0));
         else
-            scn->data_list[i].MyPreTranslate(Eigen::Vector3f(0, link_height, 0));
+            scn->data_list[i].MyPreTranslate(Eigen::Vector3f(0, link_height , 0));
     }
-    scn->data_list[i].MyPreTranslate(Eigen::Vector3f(5, 0, 0));
-    scn->data_list[0].MyPreTranslate(Eigen::Vector3f(0, -1, 0));
 
+    for(; i < scn->data_list.size(); i++) {
+        scn->data_list[i].MyPreTranslate(Eigen::Vector3f(-10 + ( rand() % ( 10 + 10 + 1 ) ),
+                -10 + ( rand() % ( 10 + 10 + 1 ) ),
+                -10 + ( rand() % ( 10 + 10 + 1 ) )));
+    }
     scn->MyScale(Eigen::Vector3f(0.2, 0.2, 0.2));
 }
 
@@ -140,7 +173,7 @@ IGL_INLINE void Renderer::init(igl::opengl::glfw::Viewer *viewer) {
         tree.init(obj.V, obj.F);
         trees[scn->mesh_index(obj.id)] = tree;
     }
-    scn->selected_data_index = scn->selected_data_index - scn->selected_data_index -1;
+    scn->selected_data_index = -1;
 }
 
 
@@ -328,46 +361,48 @@ IGL_INLINE size_t Renderer::core_index(const int id) const {
 
 void Renderer::IK_Solver() {
     if(scn->selected_data_index > scn->links_number - 1 && scn->selected_data_index != -1) {
-        Eigen::Vector4f first_link = GetAncestorTrans(1) * Eigen::Vector4f(scn->data_list[0].V.colwise().mean()[0],
+        Eigen::Vector4f tail_4f = GetAncestorTrans(1) * Eigen::Vector4f(scn->data_list[0].V.colwise().mean()[0],
                                                                            scn->data_list[0].V.colwise().minCoeff()[1],
                                                                            scn->data_list[0].V.colwise().mean()[2],
                                                                            1);
-        Eigen::Vector3f first_link_B = first_link.head(3);
+        Eigen::Vector3f tail_3f = tail_4f.head(3);
 
-        int last_link_index = static_cast<int>(scn->data_list.size() - 2);
-        Eigen::Vector4f last_link = Eigen::Vector4f(scn->data_list[last_link_index].V.colwise().mean()[0],
-                                                    scn->data_list[last_link_index].V.colwise().maxCoeff()[1],
-                                                    scn->data_list[last_link_index].V.colwise().mean()[2],
-                                                    1);
-        Eigen::Vector3f curr_last_link_E = (GetAncestorTrans(last_link_index + 1) * last_link).head(3);
+        Eigen::Vector3f selected_object_3f = scn->data().MakeTrans().col(3).head(3);
+        double tail_obj_dist = (selected_object_3f - tail_3f).norm();
 
-        Eigen::Vector3f object_D = scn->data().MakeTrans().col(3).head(3);
-        double distance_D_E = (object_D - curr_last_link_E).norm();
-        double distance_D_Base = (object_D - first_link_B).norm();
-        double max_arm_length = 1.6 * scn->links_number;
-        if (distance_D_Base > max_arm_length) {
+        if (tail_obj_dist > scn->snake_length) {
             std::cout << "Snake cannot reach selected object, try another one" << std::endl;
-            should_animate = false;
-            return;
-        }
-        if (IsBoxesColide(scn->data_list[last_link_index], scn->data_list[scn->data_list.size() - 1],
-                          trees[last_link_index], trees[scn->data_list.size() - 1])) {
-            should_animate = false;
+            object_picked = false;
             return;
         }
 
+        int last_link_index = scn->links_number - 1;
+
+        if (IsBoxesColide(scn->data_list[last_link_index], scn->data(),
+                          trees[last_link_index], trees[scn->mesh_index(scn->data().id)])) {
+            object_picked = false;
+            return;
+        }
+
+        Eigen::Vector4f head_4f = Eigen::Vector4f(scn->data_list[last_link_index].V.colwise().mean()[0],
+                                                  scn->data_list[last_link_index].V.colwise().maxCoeff()[1],
+                                                  scn->data_list[last_link_index].V.colwise().mean()[2],
+                                                  1);
+        Eigen::Vector3f head_3f = (GetAncestorTrans(last_link_index + 1) * head_4f).head(3);
+
+        double head_obj_dist = (selected_object_3f - head_3f).norm();
 
         for (int i = last_link_index; i > -1; i--) {
 
-            Eigen::Vector4f curr_link =
+            Eigen::Vector4f curr_link_4f =
                     GetAncestorTransIfNeeded(i + 1) * Eigen::Vector4f(scn->data_list[i].V.colwise().mean()[0],
                                                                       scn->data_list[i].V.colwise().minCoeff()[1],
                                                                       scn->data_list[i].V.colwise().mean()[2],
                                                                       1);
-            Eigen::Vector3f curr_link_R = curr_link.head(3);
+            Eigen::Vector3f curr_link_3f = curr_link_4f.head(3);
 
-            Eigen::Vector3f RD = (object_D - curr_link_R).normalized();
-            Eigen::Vector3f RE = (curr_last_link_E - curr_link_R).normalized();
+            Eigen::Vector3f RD = (selected_object_3f - curr_link_3f).normalized();
+            Eigen::Vector3f RE = (head_3f - curr_link_3f).normalized();
             float pre_angle = RE.dot(RD);
             if (pre_angle > 1) {
                 pre_angle = 1;
@@ -378,12 +413,12 @@ void Renderer::IK_Solver() {
 
             Eigen::Vector3f cross = RE.cross(RD).normalized();
             Eigen::Vector3f crossInverse = GetAncestorInverseIfNeeded(last_link_index) * cross;
-            if (distance_D_E > 0.5)
+            if (head_obj_dist > 0.5)
                 angle = angle / 10;
             scn->data_list[i].MyRotate(crossInverse, angle);
+            head_3f = (GetAncestorTrans(last_link_index + 1) * head_4f).head(3);
+            head_obj_dist = (selected_object_3f - head_3f).norm();
 
-            curr_last_link_E = (GetAncestorTrans(last_link_index + 1) * last_link).head(3);
-            distance_D_E = (object_D - curr_last_link_E).norm();
         }
     }
 }
@@ -429,7 +464,7 @@ bool Renderer::IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerD
     Eigen::Vector4f C1; C1 << tree1.m_box.center()[0], tree1.m_box.center()[1], tree1.m_box.center()[2], 1;
     Eigen::Vector4f C2; C2 << tree2.m_box.center()[0], tree2.m_box.center()[1], tree2.m_box.center()[2], 1;
 
-    Eigen::Vector3f C1_scn = (GetAncestorTrans(scn->data_list.size() - 1) * C1).head(3);
+    Eigen::Vector3f C1_scn = (GetAncestorTrans(scn->links_number) * C1).head(3);
     Eigen::Vector3f C2_scn = (obj2.MakeTrans() * C2).head(3);
 
     Eigen::Vector3f D = C2_scn - C1_scn;
@@ -482,42 +517,3 @@ bool Renderer::OBBCheckSat(OBBSatVars vars){
            test11|| test12||test13 || test14||test15;
 }
 
-
-void Renderer::DrawBox(igl::opengl::ViewerData &obj,
-                       Eigen::MatrixXd top_points,
-                       Eigen::MatrixXd bottom_points,
-                       Eigen::MatrixXd color) {
-    // Corners of the bounding box
-    Eigen::MatrixXd V_box(8, 3);
-    V_box << top_points, bottom_points;
-    // Edges of the bounding box
-    Eigen::MatrixXi E_box(12, 2);
-    E_box <<0, 1, 1, 2,
-            2, 3, 3, 0,
-            4, 5, 5, 6,
-            6, 7, 7, 4,
-            0, 4, 1, 5,
-            2, 6, 7, 3;
-    for (unsigned i = 0; i < E_box.rows(); ++i){
-        obj.add_edges
-                (V_box.row(E_box(i, 0)),
-                 V_box.row(E_box(i, 1)),
-                 color
-                );
-    }
-}
-
-
-void Renderer::DrawSmallBox(igl::opengl::ViewerData &obj, Eigen::AlignedBox<double, 3> box){
-    Eigen::MatrixXd top(4, 3);
-    top << box.corner(box.TopLeftCeil)(0),box.corner(box.TopLeftCeil)(1),box.corner(box.TopLeftCeil)(2),
-            box.corner(box.TopRightCeil)(0),box.corner(box.TopRightCeil)(1),box.corner(box.TopRightCeil)(2),
-            box.corner(box.TopRight)(0),box.corner(box.TopRight)(1),box.corner(box.TopRight)(2),
-            box.corner(box.TopLeft)(0),box.corner(box.TopLeft)(1),box.corner(box.TopLeft)(2);
-    Eigen::MatrixXd bottom(4, 3);
-    bottom << box.corner(box.BottomLeftCeil)(0),box.corner(box.BottomLeftCeil)(1),box.corner(box.BottomLeftCeil)(2),
-            box.corner(box.BottomRightCeil)(0),box.corner(box.BottomRightCeil)(1),box.corner(box.BottomRightCeil)(2),
-            box.corner(box.BottomRight)(0),box.corner(box.BottomRight)(1),box.corner(box.BottomRight)(2),
-            box.corner(box.BottomLeft)(0),box.corner(box.BottomLeft)(1),box.corner(box.BottomLeft)(2);
-    DrawBox(obj, top, bottom, Eigen::RowVector3d(1, 0, 1));
-}

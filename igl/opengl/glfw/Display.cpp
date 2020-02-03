@@ -122,7 +122,7 @@ bool Display::launch_rendering(bool loop)
 	{
 
 		double tic = igl::get_seconds();
-		if (renderer->should_animate) {
+		if (renderer->object_picked) {
 			renderer->IK_Solver();
 		}
 		renderer->draw(window);
