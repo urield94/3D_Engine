@@ -371,7 +371,6 @@ void Renderer::IK_Solver() {
         double tail_obj_dist = (selected_object_3f - tail_3f).norm();
 
         if (tail_obj_dist > scn->snake_length) {
-            std::cout << "Snake cannot reach selected object, try another one" << std::endl;
             object_picked = false;
             return;
         }
@@ -473,6 +472,9 @@ bool Renderer::IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerD
         if(tree1.is_leaf()) {
             if (tree2.is_leaf()) {
                 scn->erase_mesh(scn->mesh_index(obj2.id));
+                score += 5;
+                std::cout << "Score: " << score << '\r';
+                std::fflush(stdout);
                 return true;
             } else {
                 return IsBoxesColide(obj1, obj2, tree1, *tree2.m_left) || IsBoxesColide(obj1, obj2, tree1, *tree2.m_right);

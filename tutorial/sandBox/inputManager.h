@@ -31,7 +31,6 @@ static void glfw_mouse_press(GLFWwindow* window, int button, int action, int mod
 
 		if(closest_index == -1)
 		{
-			std::cout << "not found " << std::endl;
 			change_color(scn, 0);
 			scn->selected_data_index = -1;
 		}
@@ -39,14 +38,12 @@ static void glfw_mouse_press(GLFWwindow* window, int button, int action, int mod
             change_color(scn, 0);
             scn->selected_data_index = closest_index;
             change_color(scn, 1);
-			std::cout << "found " << closest_index  << std::endl;
             rndr->object_picked = true;
 		}
 		else {
 			change_color(scn, 0);
 			scn->selected_data_index = closest_index;
 			change_color(scn, 1);
-			std::cout << "found " << closest_index  << std::endl;
 		}
 		rndr->UpdatePosition(x2, y2);
 

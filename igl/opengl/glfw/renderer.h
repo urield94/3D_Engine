@@ -142,4 +142,5 @@ private:
         Eigen::Vector3f D;
     }OBBSatVars;
     bool OBBCheckSat(OBBSatVars vars);
+    int score = 0;
 };
