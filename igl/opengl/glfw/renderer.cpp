@@ -85,7 +85,7 @@ IGL_INLINE void Renderer::draw(GLFWwindow *window) {
                                                              0.003 * level + 0.003));
                         }else if(i < scn->links_number + 8) {
                             mesh.MyTranslate(Eigen::Vector3f(-0.003 * level - 0.003,
-                                                             0.003 * level + 0.002,
+                                                             0.002 * level + 0.002,
                                                              0.003 * level + 0.003));
                         }else if(i < scn->links_number + 12){
                             mesh.MyTranslate(Eigen::Vector3f(0.003 * level + 0.003,
@@ -110,7 +110,6 @@ IGL_INLINE void Renderer::draw(GLFWwindow *window) {
 
 Eigen::Matrix4f Renderer::GetAncestorTrans(int link_index) {
     Eigen::Matrix4f links = Eigen::Matrix4f::Identity();
-//    links.row(1)(1) = scn->snake_scale_factor;
     for(int i = 0; i < link_index; i++){
         links = links * scn->data_list[i].MakeConnectedTrans();
     }
@@ -128,7 +127,6 @@ Eigen::Matrix3f Renderer::GetAncestorInverse(int link_index) {
 
 void Renderer::init_system() {
     int i = 0;
-//    scn->data_list[0].MyScale(Eigen::Vector3f(1,scn->snake_scale_factor,1));
     for (; i < scn->links_number; i++) {
         scn->data_list[i].line_width = 3;
         scn->data_list[i].show_overlay_depth = 0;
@@ -146,12 +144,6 @@ void Renderer::init_system() {
             scn->data_list[i].MyPreTranslate(Eigen::Vector3f(0, 0, 0));
         else
             scn->data_list[i].MyPreTranslate(Eigen::Vector3f(0, link_height , 0));
-    }
-
-    for(; i < scn->data_list.size(); i++) {
-        scn->data_list[i].MyPreTranslate(Eigen::Vector3f(-5 + ( rand() % ( 5 + 5 + 1 ) ),
-                -5 + ( rand() % ( 5 + 5 + 1 ) ),
-                -5 + ( rand() % ( 5 + 5 + 1 ) )));
     }
     scn->MyScale(Eigen::Vector3f(0.15, 0.15, 0.15));
 }

@@ -136,15 +136,18 @@ void Display::load_objects(Renderer *rndr) {
 			}
 			rndr->trees.resize(rndr->scn->data_list.size());
 			igl::AABB<Eigen::MatrixXd, 3> tree;
-			tree.init(rndr->scn->data_list[rndr->scn->data_list.size() - 1].V,
-					  rndr->scn->data_list[rndr->scn->data_list.size() - 1].F);
-			rndr->trees[rndr->scn->mesh_index(rndr->scn->data_list[rndr->scn->data_list.size() - 1].id)] = tree;
-			rndr->scn->data_list[rndr->scn->data_list.size() - 1].set_visible(true, rndr->core().id);
-			rndr->scn->data_list[rndr->scn->data_list.size() - 1].copy_options(rndr->core_list[0], rndr->core());
-			rndr->scn->data_list[rndr->scn->data_list.size() - 1].score_group = group;
-			rndr->scn->data_list[rndr->scn->data_list.size() - 1].MyPreTranslate(Eigen::Vector3f(-5 + ( rand() % ( 5 + 5 + 1 ) ),
-															                                     -5 + ( rand() % ( 5 + 5 + 1 ) ),
-															                                     -5 + ( rand() % ( 5 + 5 + 1 ) )));
+			tree.init(rndr->scn->data().V,
+					  rndr->scn->data().F);
+			rndr->trees[rndr->scn->mesh_index(rndr->scn->data().id)] = tree;
+			rndr->scn->data().set_visible(true, rndr->core().id);
+			rndr->scn->data().copy_options(rndr->core_list[0], rndr->core());
+			rndr->scn->data().score_group = group;
+			rndr->scn->data().MyPreTranslate(Eigen::Vector3f(-5 + ( rand() % ( 5 + 5 + 1 ) ),
+											-5 + ( rand() % ( 5 + 5 + 1 ) ),
+											-5 + ( rand() % ( 5 + 5 + 1 ) )));
+			Eigen::MatrixXd C(1,3);
+			C << (rand() % (5)), (rand() % (5)), (rand() % (5));
+			rndr->scn->data().set_colors(C);
 			i++;
 		}
 		group++;
@@ -164,6 +167,9 @@ bool Display::launch_rendering(bool loop)
 	Renderer* renderer = (Renderer*)glfwGetWindowUserPointer(window);
 	glfwGetWindowSize(window, &windowWidth, &windowHeight);
 	renderer->post_resize(window, windowWidth, windowHeight);
+
+	load_objects(renderer);
+
 	double last_first_time = igl::get_seconds();
 	std::cout << "\n" << std::endl;
 
@@ -207,7 +213,8 @@ bool Display::launch_rendering(bool loop)
 			std::cout << "---------------\n" << std::endl;
 			std::cout << "----LEVEL " << renderer->level << "----" << std::endl;
 		}
-		if(tic - last_first_time > 20){
+		if((renderer->level < 5 && tic - last_first_time > 20 - renderer->level) ||
+		   (renderer->level >= 5 && tic - last_first_time > 15)){
 			load_objects(renderer);
 			last_first_time = igl::get_seconds();
 		}

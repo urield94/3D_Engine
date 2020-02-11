@@ -5,7 +5,10 @@
 static void change_color(igl::opengl::glfw::Viewer* scn, int color){ // color = 0 for yellow 1 for red
 	Eigen::MatrixXd C(1,3);
 	if(scn->selected_data_index != -1 && !color){
-		C << 1,1,0;
+		if(scn->selected_data_index < scn->links_number)
+			C << 1,1,0;
+		else
+			C << (rand() % (5)), (rand() % (5)), (rand() % (5));
 		scn->data().set_colors(C);
 	}
 	if(scn->selected_data_index != -1 && color){
