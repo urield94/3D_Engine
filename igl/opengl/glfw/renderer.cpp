@@ -167,6 +167,8 @@ IGL_INLINE void Renderer::init(igl::opengl::glfw::Viewer *viewer) {
         tree.init(obj.V, obj.F);
         trees[scn->mesh_index(obj.id)] = tree;
     }
+
+
     scn->selected_data_index = -1;
 }
 

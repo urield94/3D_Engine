@@ -7,6 +7,7 @@ In order to compile the code in Linux environment install the following packages
 
     sudo apt-get install freeglut3-dev
     sudo apt-get install xorg-dev libglu1-mesa-dev
+    sudo apt install libsqlite3-dev
 
 For compiling:
 1. Clone or download the project

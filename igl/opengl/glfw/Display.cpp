@@ -206,7 +206,7 @@ bool Display::launch_rendering(bool loop)
 
 		if(renderer->score >= 50){
 			char ans = 'N';
-			std::cout << "Final level score - " << renderer->score << std::endl;
+			std::cout << "Final level score: " << renderer->score << std::endl;
 			std::cout << "Do you want to continue to the next level? (Y/N): ";
 			std::cin >> ans;
 			if(ans == 'N' || ans == 'n'){
@@ -219,8 +219,8 @@ bool Display::launch_rendering(bool loop)
 			std::cout << "---------------\n" << std::endl;
 			std::cout << "----LEVEL " << renderer->level << "----" << std::endl;
 		}
-		if((renderer->level < 5 && tic - last_first_time > 20 - renderer->level) ||
-		   (renderer->level >= 5 && tic - last_first_time > 15)){
+		if( (renderer->level > 10) && (tic - last_first_time > 100 + renderer->level)){
+			load_objects(renderer);
 			last_first_time = igl::get_seconds();
 		}
 		if (!loop)
