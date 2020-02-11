@@ -6,60 +6,73 @@
 #include <ctime>
 #include <cstdlib>
 
+#include <chrono>
+#include <thread>
+#include <functional>
+
 using namespace std;
 
-igl::opengl::glfw::Viewer load_meshes_from_conf() {
+
+igl::opengl::glfw::Viewer load_meshes_from_conf(Renderer *rndr) {
     igl::opengl::glfw::Viewer viewer;;
-    viewer.links_number = 15;
+    viewer.links_number = 12;
     viewer.snake_scale_factor = 0.5;
     viewer.snake_length = 1.6 * viewer.links_number * viewer.snake_scale_factor;
+    int group = 0;
     fstream newfile;
     newfile.open("configuration.txt", ios::in);
     if (newfile.is_open()) {
         string line;
         int i = 0;
         while (getline(newfile, line)) {
-            if(i==0) {
-                for(int j=0; j<viewer.links_number; j++){
+            if (i == 0) {
+                for (int j = 0; j < viewer.links_number; j++) {
                     viewer.load_mesh_from_file(line);
-                    Eigen::MatrixXd V(viewer.data_list[j].V.rows(),viewer.data_list[j].V.cols());
-                    for(int p = 0; p < viewer.data_list[j].V.rows(); p++){
-                        V(p,0) = viewer.data_list[j].V(p,0);
+                    Eigen::MatrixXd V(viewer.data_list[j].V.rows(), viewer.data_list[j].V.cols());
+                    for (int p = 0; p < viewer.data_list[j].V.rows(); p++) {
+                        V(p, 0) = viewer.data_list[j].V(p, 0);
 
-                        V(p,1) = viewer.data_list[j].V(p,1) * viewer.snake_scale_factor;
+                        V(p, 1) = viewer.data_list[j].V(p, 1) * viewer.snake_scale_factor;
 
-                        V(p,2) = viewer.data_list[j].V(p,2);
+                        V(p, 2) = viewer.data_list[j].V(p, 2);
                     }
                     viewer.data_list[j].set_mesh(V, viewer.data_list[j].F);
                 }
+                i++;
             } else {
-                viewer.load_mesh_from_file(line);
-                float angle = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-                if(i < viewer.links_number + 4) {
-                    viewer.data().MyRotate(Eigen::Vector3f(-(rand() % (3)),
-                                                           (rand() % (3)),
-                                                           -(rand() % (3))), angle);
-                }else if(i < viewer.links_number + 8) {
-                    viewer.data().MyRotate(Eigen::Vector3f((rand() % (3)),
-                                                           -(rand() % (3)),
-                                                           (rand() % (3))), -angle);
-                }else if(i < viewer.links_number + 12){
-                    viewer.data().MyRotate(Eigen::Vector3f((rand() % (3)),
-                                                           (rand() % (3)),
-                                                           -(rand() % (3))), -angle);
+                rndr->object_paths.push_back(line);
+                for (int j = 0; j < 3; j++) {
+                    viewer.load_mesh_from_file(line);
+                    float angle = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+                    if (i < viewer.links_number + 4) {
+                        viewer.data().MyRotate(Eigen::Vector3f(-(rand() % (3)),
+                                                               (rand() % (3)),
+                                                               -(rand() % (3))), angle);
+                    } else if (i < viewer.links_number + 8) {
+                        viewer.data().MyRotate(Eigen::Vector3f((rand() % (3)),
+                                                               -(rand() % (3)),
+                                                               (rand() % (3))), -angle);
+                    } else if (i < viewer.links_number + 12) {
+                        viewer.data().MyRotate(Eigen::Vector3f((rand() % (3)),
+                                                               (rand() % (3)),
+                                                               -(rand() % (3))), -angle);
+                    } else {
+                        viewer.data().MyRotate(Eigen::Vector3f((rand() % (3)),
+                                                               (rand() % (3)),
+                                                               (rand() % (3))), angle);
+                    }
+                    viewer.data().score_group = group;
+                    i++;
                 }
-                else{
-                    viewer.data().MyRotate(Eigen::Vector3f((rand() % (3)),
-                                                           (rand() % (3)),
-                                                           (rand() % (3))), angle);
-                }
+                group++;
             }
-            i++;
         }
         newfile.close();
     }
     return viewer;
 }
+
+
 
 int main(int argc, char *argv[]) {
     srand (static_cast <unsigned> (time(0)));
@@ -68,7 +81,8 @@ int main(int argc, char *argv[]) {
     Display *disp = new Display(1800, 950, "Wellcome");
     Renderer renderer;
 
-    igl::opengl::glfw::Viewer viewer = load_meshes_from_conf();
+    igl::opengl::glfw::Viewer viewer = load_meshes_from_conf(&renderer);
+//    load_objects(&viewer);
 
     Init(*disp);
     renderer.init(&viewer);

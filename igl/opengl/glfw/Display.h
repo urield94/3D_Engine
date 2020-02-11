@@ -9,7 +9,7 @@ class Display
 {
 public:
 	Display(int windowWidth, int windowHeight, const std::string& title);
-	
+	void load_objects(Renderer *rndr);
 	bool launch_rendering(bool loop);
 
 	void SwapBuffers();

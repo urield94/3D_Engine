@@ -1,11 +1,4 @@
 /home/rochberg/CLionProjects/3D_Engine/tutorial/data/ycylinder.obj
 /home/rochberg/CLionProjects/3D_Engine/tutorial/data/sphere.obj
-/home/rochberg/CLionProjects/3D_Engine/tutorial/data/sphere.obj
-/home/rochberg/CLionProjects/3D_Engine/tutorial/data/sphere.obj
 /home/rochberg/CLionProjects/3D_Engine/tutorial/data/cube.obj
-/home/rochberg/CLionProjects/3D_Engine/tutorial/data/cube.obj
-/home/rochberg/CLionProjects/3D_Engine/tutorial/data/cube.obj
-/home/rochberg/CLionProjects/3D_Engine/tutorial/data/cow.off
-/home/rochberg/CLionProjects/3D_Engine/tutorial/data/cow.off
-/home/rochberg/CLionProjects/3D_Engine/tutorial/data/cow.off
-
+/home/rochberg/uriel/3D/ass3/3D_Engine/tutorial/data/cow.off

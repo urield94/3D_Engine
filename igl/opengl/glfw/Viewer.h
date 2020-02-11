@@ -125,7 +125,7 @@ public:
     // Stores all the data that should be visualized
     std::vector<ViewerData> data_list;
 
-    size_t selected_data_index;
+    int selected_data_index;
     int next_data_id;
     struct link{
         int parent;

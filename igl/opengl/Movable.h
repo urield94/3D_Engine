@@ -25,6 +25,7 @@ public:
 	Eigen::Transform<float,3,Eigen::Affine> Tin; //Parent
     void TranslateInSystem(Eigen::Matrix4f mat, Eigen::Vector3f amt);
     void RotateInSystem(Eigen::Vector3f rotAxis, float angle);
+    int score_group;
 private:
 	Eigen::Transform<float,3,Eigen::Affine> T; //Self
 };

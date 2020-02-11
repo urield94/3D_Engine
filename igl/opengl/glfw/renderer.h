@@ -121,17 +121,20 @@ public:
     bool IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerData &obj2,
                        igl::AABB<Eigen::MatrixXd, 3> tree1, igl::AABB<Eigen::MatrixXd, 3> tree2);
     void DrawSmallBox(igl::opengl::ViewerData &obj, Eigen::AlignedBox<double, 3> box);
-
-private:
+	std::vector<igl::AABB<Eigen::MatrixXd,3>> trees;
+	std::vector<std::string> object_paths;
+	igl::opengl::glfw::Viewer* scn;
 	// Stores all the viewing options
 	std::vector<igl::opengl::ViewerCore> core_list;
-	igl::opengl::glfw::Viewer* scn;
+	int score = 0;
+	int level = 0;
+
+private:
 	size_t selected_core_index;
 	int next_core_id;
 	float highdpi;
 	double xold, yold, xrel, yrel;
 	bool prerotation = true;
-	std::vector<igl::AABB<Eigen::MatrixXd,3>> trees;
     typedef struct OBBSatVars{
         Eigen::Vector3f A0; Eigen::Vector3f A1; Eigen::Vector3f A2;
         Eigen::Vector3f B0; Eigen::Vector3f B1; Eigen::Vector3f B2;
@@ -142,5 +145,5 @@ private:
         Eigen::Vector3f D;
     }OBBSatVars;
     bool OBBCheckSat(OBBSatVars vars);
-    int score = 0;
+
 };

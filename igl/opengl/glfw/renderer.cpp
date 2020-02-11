@@ -73,35 +73,32 @@ IGL_INLINE void Renderer::draw(GLFWwindow *window) {
     for (auto &core : core_list) {
         for (auto &mesh : scn->data_list) {
             if (mesh.is_visible & core.id) {
-                Eigen::Matrix4f scn_trans = scn->MakeTrans() * GetAncestorTransIfNeeded(mesh.id);
+                Eigen::Matrix4f scn_trans = scn->MakeTrans() * GetAncestorTransIfNeeded(scn->mesh_index(mesh.id));
                 if(scn->mesh_index(mesh.id) > scn->links_number - 1) {
-                    if((mesh.MakeTrans().col(3)(0) > 8 && mesh.MakeTrans().col(3)(1) > 8 && mesh.MakeTrans().col(3)(2) > 8) ||
-                    (mesh.MakeTrans().col(3)(0) < -8 && mesh.MakeTrans().col(3)(1) < -8 && mesh.MakeTrans().col(3)(2) < -8)){
+                    if(std::abs(mesh.MakeTrans().col(3)(0)) > 5 && std::abs(mesh.MakeTrans().col(3)(1)) > 5 && std::abs(mesh.MakeTrans().col(3)(2)) > 5){
                         scn->erase_mesh(scn->mesh_index(mesh.id));
                     }else{
-                        //TODO START - CHANGE SPEED ON LEVEL UP, YOU CAN CHANGE ALL MOVING MECHANISM TO A RANDOM MECHANISM
                         int i = scn->mesh_index(mesh.id);
                         if(i < scn->links_number + 4) {
-                            mesh.MyTranslate(Eigen::Vector3f(0.005,
-                                                             0.002,
-                                                             0.003));
+                            mesh.MyTranslate(Eigen::Vector3f(0.003 * level + 0.003,
+                                                             0.002 * level + 0.002,
+                                                             0.003 * level + 0.003));
                         }else if(i < scn->links_number + 8) {
-                            mesh.MyTranslate(Eigen::Vector3f(-0.005,
-                                                             0.002,
-                                                             0.003));
+                            mesh.MyTranslate(Eigen::Vector3f(-0.003 * level - 0.003,
+                                                             0.003 * level + 0.002,
+                                                             0.003 * level + 0.003));
                         }else if(i < scn->links_number + 12){
-                            mesh.MyTranslate(Eigen::Vector3f(0.005,
-                                                            -0.002,
-                                                             0.003));
+                            mesh.MyTranslate(Eigen::Vector3f(0.003 * level + 0.003,
+                                                             -0.002 * level - 0.002,
+                                                             0.003 * level + 0.003));
                         }
                         else{
-                            mesh.MyTranslate(Eigen::Vector3f(-0.005,
-                                                             0.002,
-                                                             -0.003));
+                            mesh.MyTranslate(Eigen::Vector3f(-0.003 * level - 0.003,
+                                                             0.002 * level + 0.002,
+                                                             -0.003 * level - 0.003));
                         }
-                        //TODO END
 
-                    };
+                    }
                 }
                 core.draw(scn_trans, mesh, scn->links_number);
             }
@@ -152,11 +149,11 @@ void Renderer::init_system() {
     }
 
     for(; i < scn->data_list.size(); i++) {
-        scn->data_list[i].MyPreTranslate(Eigen::Vector3f(-10 + ( rand() % ( 10 + 10 + 1 ) ),
-                -10 + ( rand() % ( 10 + 10 + 1 ) ),
-                -10 + ( rand() % ( 10 + 10 + 1 ) )));
+        scn->data_list[i].MyPreTranslate(Eigen::Vector3f(-5 + ( rand() % ( 5 + 5 + 1 ) ),
+                -5 + ( rand() % ( 5 + 5 + 1 ) ),
+                -5 + ( rand() % ( 5 + 5 + 1 ) )));
     }
-    scn->MyScale(Eigen::Vector3f(0.2, 0.2, 0.2));
+    scn->MyScale(Eigen::Vector3f(0.15, 0.15, 0.15));
 }
 
 IGL_INLINE void Renderer::init(igl::opengl::glfw::Viewer *viewer) {
@@ -360,7 +357,7 @@ IGL_INLINE size_t Renderer::core_index(const int id) const {
 
 
 void Renderer::IK_Solver() {
-    if(scn->selected_data_index > scn->links_number - 1 && scn->selected_data_index != -1) {
+    if(scn->selected_data_index > scn->links_number - 1) {
         Eigen::Vector4f tail_4f = GetAncestorTrans(1) * Eigen::Vector4f(scn->data_list[0].V.colwise().mean()[0],
                                                                            scn->data_list[0].V.colwise().minCoeff()[1],
                                                                            scn->data_list[0].V.colwise().mean()[2],
@@ -471,9 +468,15 @@ bool Renderer::IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerD
     if(!OBBCheckSat({A0,A1,A2,B0,B1,B2,a0,a1,a2,b0,b1,b2,c00,c01,c02,c10,c11,c12,c20,c21,c22,D})){
         if(tree1.is_leaf()) {
             if (tree2.is_leaf()) {
+                if(obj2.score_group == 0){
+                    score += 5;
+                }else if(obj2.score_group == 1){
+                    score += 10;
+                }else{
+                    score += 15;
+                }
                 scn->erase_mesh(scn->mesh_index(obj2.id));
-                score += 5;
-                std::cout << "Score: " << score << '\r';
+                std::cout << "Score: " << score << "\t\r" << std::flush;
                 std::fflush(stdout);
                 return true;
             } else {

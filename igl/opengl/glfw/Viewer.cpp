@@ -118,7 +118,7 @@ namespace glfw
   {
 
     // Create new data slot and set to selected
-    if(!(data().F.rows() == 0  && data().V.rows() == 0))
+    if(selected_data_index == -1 || !(data().F.rows() == 0  && data().V.rows() == 0))
     {
       append_mesh();
     }
@@ -127,8 +127,7 @@ namespace glfw
     size_t last_dot = mesh_file_name_string.rfind('.');
     if (last_dot == std::string::npos)
     {
-      std::cerr<<"Error: No file extension found in "<<
-        mesh_file_name_string<<std::endl;
+      std::cerr<<"Error: No file extension found in "<< mesh_file_name_string<<std::endl;
       return false;
     }
 

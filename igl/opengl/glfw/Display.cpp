@@ -106,6 +106,53 @@ Display::Display(int windowWidth, int windowHeight, const std::string& title)
 		
 }
 
+
+void Display::load_objects(Renderer *rndr) {
+	int i = 0;
+	int group = 0;
+	int old_selected = rndr->scn->selected_data_index;
+    rndr->object_picked = false;
+	for(auto& path: rndr->object_paths) {
+		for (int j = 0; j < 3; j++) {
+			rndr->scn->load_mesh_from_file(path);
+			float angle = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+			rndr->scn->data().MyTranslate(Eigen::Vector3f(-(rand() % (3)), (rand() % (3)), (rand() % (3))));
+			if (i < rndr->scn->links_number + 4) {
+				rndr->scn->data().MyRotate(Eigen::Vector3f(-(rand() % (3)),
+														   (rand() % (3)),
+														   -(rand() % (3))), angle);
+			} else if (i < rndr->scn->links_number + 8) {
+				rndr->scn->data().MyRotate(Eigen::Vector3f((rand() % (3)),
+														   -(rand() % (3)),
+														   (rand() % (3))), -angle);
+			} else if (i < rndr->scn->links_number + 12) {
+				rndr->scn->data().MyRotate(Eigen::Vector3f((rand() % (3)),
+														   (rand() % (3)),
+														   -(rand() % (3))), -angle);
+			} else {
+				rndr->scn->data().MyRotate(Eigen::Vector3f((rand() % (3)),
+														   (rand() % (3)),
+														   (rand() % (3))), angle);
+			}
+			rndr->trees.resize(rndr->scn->data_list.size());
+			igl::AABB<Eigen::MatrixXd, 3> tree;
+			tree.init(rndr->scn->data_list[rndr->scn->data_list.size() - 1].V,
+					  rndr->scn->data_list[rndr->scn->data_list.size() - 1].F);
+			rndr->trees[rndr->scn->mesh_index(rndr->scn->data_list[rndr->scn->data_list.size() - 1].id)] = tree;
+			rndr->scn->data_list[rndr->scn->data_list.size() - 1].set_visible(true, rndr->core().id);
+			rndr->scn->data_list[rndr->scn->data_list.size() - 1].copy_options(rndr->core_list[0], rndr->core());
+			rndr->scn->data_list[rndr->scn->data_list.size() - 1].score_group = group;
+			rndr->scn->data_list[rndr->scn->data_list.size() - 1].MyPreTranslate(Eigen::Vector3f(-5 + ( rand() % ( 5 + 5 + 1 ) ),
+															                                     -5 + ( rand() % ( 5 + 5 + 1 ) ),
+															                                     -5 + ( rand() % ( 5 + 5 + 1 ) )));
+			i++;
+		}
+		group++;
+	}
+    rndr->scn->selected_data_index = old_selected;
+    rndr->object_picked = true;
+}
+
 bool Display::launch_rendering(bool loop)
 {
 	// glfwMakeContextCurrent(window);
@@ -117,7 +164,10 @@ bool Display::launch_rendering(bool loop)
 	Renderer* renderer = (Renderer*)glfwGetWindowUserPointer(window);
 	glfwGetWindowSize(window, &windowWidth, &windowHeight);
 	renderer->post_resize(window, windowWidth, windowHeight);
-	
+	double last_first_time = igl::get_seconds();
+	std::cout << "\n" << std::endl;
+
+	std::cout << "----LEVEL " << renderer->level << "----" << std::endl;
 	while (!glfwWindowShouldClose(window))
 	{
 
@@ -142,6 +192,24 @@ bool Display::launch_rendering(bool loop)
 		{
 			glfwPollEvents();
 			frame_counter = 0;
+		}
+
+		if(renderer->score >= 50){
+			char ans = 'N';
+			std::cout << "Final level score - " << renderer->score << std::endl;
+			std::cout << "Do you want to continue to the next level? (Y/N): ";
+			std::cin >> ans;
+			if(ans == 'N' || ans == 'n'){
+				return EXIT_SUCCESS;
+			}
+			renderer->score = 0;
+			renderer->level++;
+			std::cout << "---------------\n" << std::endl;
+			std::cout << "----LEVEL " << renderer->level << "----" << std::endl;
+		}
+		if(tic - last_first_time > 20){
+			load_objects(renderer);
+			last_first_time = igl::get_seconds();
 		}
 		if (!loop)
 			return !glfwWindowShouldClose(window);
