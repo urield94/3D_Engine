@@ -127,7 +127,10 @@ public:
 	// Stores all the viewing options
 	std::vector<igl::opengl::ViewerCore> core_list;
 	int score = 0;
+	int final_score = 0;
 	int level = 0;
+	void SetVelocity(igl::opengl::ViewerData &obj);
+	void ResetObject(igl::opengl::ViewerData &obj);
 
 private:
 	size_t selected_core_index;

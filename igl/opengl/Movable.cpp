@@ -13,6 +13,11 @@ Eigen::Matrix4f Movable::MakeTrans()
 	return T.matrix();
 }
 
+void Movable::ResetTrans()
+{
+    T = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+}
+
 Eigen::Matrix4f Movable::MakeConnectedTrans()
 {
     return (T*Tin).matrix();
@@ -74,4 +79,13 @@ void Movable::TranslateInSystem(Eigen::Matrix4f mat, Eigen::Vector3f amt)
 void Movable::RotateInSystem(Eigen::Vector3f rotAxis, float angle)
 {
     MyRotate(T.rotation().inverse() * rotAxis, angle);
+}
+
+void Movable::SetVelocity(Eigen::Vector3f v) {
+    velocity = v;
+}
+
+
+Eigen::Vector3f Movable::GetVelocity() {
+    return velocity;
 }

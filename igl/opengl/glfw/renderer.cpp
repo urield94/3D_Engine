@@ -76,28 +76,10 @@ IGL_INLINE void Renderer::draw(GLFWwindow *window) {
                 Eigen::Matrix4f scn_trans = scn->MakeTrans() * GetAncestorTransIfNeeded(scn->mesh_index(mesh.id));
                 if(scn->mesh_index(mesh.id) > scn->links_number - 1) {
                     if(std::abs(mesh.MakeTrans().col(3)(0)) > 5 && std::abs(mesh.MakeTrans().col(3)(1)) > 5 && std::abs(mesh.MakeTrans().col(3)(2)) > 5){
-                        scn->erase_mesh(scn->mesh_index(mesh.id));
+                        ResetObject(mesh);
                     }else{
                         int i = scn->mesh_index(mesh.id);
-                        if(i < scn->links_number + 4) {
-                            mesh.MyTranslate(Eigen::Vector3f(0.003 * level + 0.003,
-                                                             0.002 * level + 0.002,
-                                                             0.003 * level + 0.003));
-                        }else if(i < scn->links_number + 8) {
-                            mesh.MyTranslate(Eigen::Vector3f(-0.003 * level - 0.003,
-                                                             0.002 * level + 0.002,
-                                                             0.003 * level + 0.003));
-                        }else if(i < scn->links_number + 12){
-                            mesh.MyTranslate(Eigen::Vector3f(0.003 * level + 0.003,
-                                                             -0.002 * level - 0.002,
-                                                             0.003 * level + 0.003));
-                        }
-                        else{
-                            mesh.MyTranslate(Eigen::Vector3f(-0.003 * level - 0.003,
-                                                             0.002 * level + 0.002,
-                                                             -0.003 * level - 0.003));
-                        }
-
+                        mesh.MyTranslate(mesh.GetVelocity());
                     }
                 }
                 core.draw(scn_trans, mesh, scn->links_number);
@@ -107,6 +89,29 @@ IGL_INLINE void Renderer::draw(GLFWwindow *window) {
 
 }
 
+void Renderer::SetVelocity(igl::opengl::ViewerData &obj){
+    int sign1 = 1;
+    int sign2 = 1;
+    int sign3 = 1;
+    float minus_plus_num1 = -5 + (rand() % ( 5 + 5 + 1 ));
+    float minus_plus_num2 = -5 + (rand() % ( 5 + 5 + 1 ));
+    float minus_plus_num3 = -5 + (rand() % ( 5 + 5 + 1 ));
+    if(minus_plus_num1 < 0) sign1 = -1;
+    if(minus_plus_num2 < 0) sign2 = -1;
+    if(minus_plus_num3 < 0) sign3 = -1;
+    obj.SetVelocity(Eigen::Vector3f((sign1 * 0.003 * level) + (sign1 * 0.003),
+                                                  (sign2 * 0.002 * level) + (sign2 * 0.002),
+                                                  (sign3 * 0.003 * level) + (sign3 * 0.003)));
+}
+
+void Renderer::ResetObject(igl::opengl::ViewerData &obj){
+    obj.ResetTrans();
+    int level_location = 2 + level;
+    obj.MyPreTranslate(Eigen::Vector3f((-level_location - level) + ( rand() % ( level_location + level_location + 1 ) ),
+                                       (-level_location - level) + ( rand() % ( level_location + level_location + 1 ) ),
+                                       (-level_location - level) + ( rand() % ( level_location + level_location + 1 ) )));
+    SetVelocity(obj);
+}
 
 Eigen::Matrix4f Renderer::GetAncestorTrans(int link_index) {
     Eigen::Matrix4f links = Eigen::Matrix4f::Identity();
@@ -461,13 +466,17 @@ bool Renderer::IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerD
         if(tree1.is_leaf()) {
             if (tree2.is_leaf()) {
                 if(obj2.score_group == 0){
+                    final_score += 5;
                     score += 5;
                 }else if(obj2.score_group == 1){
+                    final_score += 10;
                     score += 10;
                 }else{
+                    final_score += 15;
                     score += 15;
                 }
-                scn->erase_mesh(scn->mesh_index(obj2.id));
+                ResetObject(obj2);
+
                 std::cout << "Score: " << score << "\t\r" << std::flush;
                 std::fflush(stdout);
                 return true;

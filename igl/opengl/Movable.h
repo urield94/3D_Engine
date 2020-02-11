@@ -26,7 +26,11 @@ public:
     void TranslateInSystem(Eigen::Matrix4f mat, Eigen::Vector3f amt);
     void RotateInSystem(Eigen::Vector3f rotAxis, float angle);
     int score_group;
+    void SetVelocity(Eigen::Vector3f v);
+	Eigen::Vector3f GetVelocity();
+	void ResetTrans();
 private:
 	Eigen::Transform<float,3,Eigen::Affine> T; //Self
+	Eigen::Vector3f velocity;
 };
 

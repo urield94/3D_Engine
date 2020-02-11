@@ -101,7 +101,14 @@ namespace glfw
     const std::string usage(R"(
 **************************WELCOME!!!**************************
 
-  Start eating objects by clicking on them, and earn points!
+  Eat objects by clicking on them, and earn points according to the following:
+
+  Sphere = 5 points     Cube = 10 points     Cow = 15 points
+
+  Every 50 points you've earned, the speed and the creation-radios of
+  the objects will be increase.
+
+  GOOD-LUCK!
 
 **************************************************************)"
 );
