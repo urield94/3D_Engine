@@ -133,8 +133,9 @@ public:
 	int level = 0;
 	void SetVelocity(igl::opengl::ViewerData &obj);
 	void ResetObject(igl::opengl::ViewerData &obj);
-    int player_id;
+    int game_id;
     DB db;
+	void SetBackground();
 private:
 	size_t selected_core_index;
 	int next_core_id;

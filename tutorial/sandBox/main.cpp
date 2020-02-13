@@ -8,8 +8,8 @@
 #include <chrono>
 #include <thread>
 #include <functional>
-
 #include "DB.h"
+#include <igl/png/readPNG.h>
 
 
 using namespace std;
@@ -43,6 +43,12 @@ igl::opengl::glfw::Viewer load_meshes_from_conf(Renderer *rndr) {
                 i++;
             } else {
                 rndr->object_paths.push_back(line);
+                std::size_t pos = line.find("cube");
+                if(pos != -1){
+                    viewer.load_mesh_from_file(line);
+                    viewer.data().MyPreTranslate(Eigen::Vector3f(0, 0, 0));
+                    viewer.data().MyScale(Eigen::Vector3f(50,50,50));
+                }
             }
         }
         newfile.close();
@@ -68,10 +74,6 @@ int main(int argc, char *argv[]) {
 
     Init(*disp);
     renderer.Init(&viewer, player.score, player.level, player.id, db);
-
-    // Add another point of view screen
-    renderer.core().viewport = Eigen::Vector4f(0, 0, 850, 850);
-    renderer.append_core(Eigen::Vector4f(850, 0, 850, 850));
 
     disp->SetRenderer(&renderer);
 

@@ -4,14 +4,14 @@
 
 static void change_color(igl::opengl::glfw::Viewer* scn, int color){ // color = 0 for yellow 1 for red
 	Eigen::MatrixXd C(1,3);
-	if(scn->selected_data_index != -1 && !color){
+	if((scn->selected_data_index != -1 || scn->selected_data_index == scn->links_number) && !color){
 		if(scn->selected_data_index < scn->links_number)
 			C << 1,1,0;
 		else
 			C << (rand() % (5)), (rand() % (5)), (rand() % (5));
 		scn->data().set_colors(C);
 	}
-	if(scn->selected_data_index != -1 && color){
+	if((scn->selected_data_index != -1 || scn->selected_data_index == scn->links_number) && color){
 		C << 1,0,0;
 		scn->data().set_colors(C);
 	}
@@ -32,7 +32,7 @@ static void glfw_mouse_press(GLFWwindow* window, int button, int action, int mod
 
 		closest_index = rndr->Picking(x2, y2);
 
-		if(closest_index == -1)
+		if(closest_index == -1 || closest_index == scn->links_number)
 		{
 			change_color(scn, 0);
 			scn->selected_data_index = -1;

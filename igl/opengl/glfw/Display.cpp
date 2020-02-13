@@ -206,7 +206,7 @@ bool Display::launch_rendering(bool loop)
 
 		if(renderer->level_score >= 50){
 			renderer->level++;
-			renderer->db.SetLevel(renderer->player_id,renderer->final_score, renderer->level);
+			renderer->db.SetLevel(renderer->game_id,renderer->final_score, renderer->level);
 
 			char ans = 'N';
 			std::cout << "Final level level_score: " << renderer->level_score << std::endl;
@@ -218,7 +218,7 @@ bool Display::launch_rendering(bool loop)
 			}
 
 			renderer->level_score = 0;
-
+			renderer->SetBackground();
 			std::cout << "---------------\n" << std::endl;
 			std::cout << "----LEVEL " << renderer->level << "----" << std::endl;
 		}

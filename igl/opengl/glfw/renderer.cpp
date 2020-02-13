@@ -5,6 +5,7 @@
 #include "igl/look_at.h"
 #include <Eigen/Dense>
 #include <cstdlib>
+#include <igl/png/readPNG.h>
 
 Renderer::Renderer() : selected_core_index(0),
                        next_core_id(2) {
@@ -89,6 +90,16 @@ IGL_INLINE void Renderer::draw(GLFWwindow *window) {
 
 }
 
+void Renderer::SetBackground(){
+    Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic> R, G, B, A;
+    std::string image_name = "backgrounds/" + std::to_string(level) + ".png";
+    igl::png::readPNG(image_name, R, G, B, A);
+    scn->data_list[scn->links_number].show_texture = 1;
+    scn->data_list[scn->links_number].set_texture(R, G, B);
+    scn->data_list[scn->links_number].set_visible(true, core().id);
+    scn->data_list[scn->links_number].copy_options(core_list[0], core());
+}
+
 void Renderer::SetVelocity(igl::opengl::ViewerData &obj){
     int sign1 = 1;
     int sign2 = 1;
@@ -154,12 +165,13 @@ void Renderer::init_system() {
 }
 
 IGL_INLINE void
-Renderer::Init(igl::opengl::glfw::Viewer *viewer, int player_score, int player_level, int _player_id, DB open_db) {
+Renderer::Init(igl::opengl::glfw::Viewer *viewer, int player_score, int player_level, int player_id, DB open_db) {
     scn = viewer;
     final_score = player_score;
     level = player_level;
-    player_id = _player_id;
+    game_id = player_id;
     db = open_db;
+
     init_system();
 
     core().init();
@@ -172,6 +184,20 @@ Renderer::Init(igl::opengl::glfw::Viewer *viewer, int player_score, int player_l
         trees[scn->mesh_index(obj.id)] = tree;
     }
 
+    // Add another point of view screen
+    core().viewport = Eigen::Vector4f(0, 0, 850, 850);
+    append_core(Eigen::Vector4f(850, 0, 850, 850));
+
+    SetBackground();
+
+    for(int i = 0; i < scn->links_number; i++){
+        Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic> R, G, B, A;
+        igl::png::readPNG("skin.png", R, G, B, A);
+        scn->data_list[i].show_texture = 1;
+        scn->data_list[i].set_texture(R, G, B);
+        scn->data_list[i].set_visible(true, core().id);
+        scn->data_list[i].copy_options(core_list[0], core());
+    }
 
     scn->selected_data_index = -1;
 }
