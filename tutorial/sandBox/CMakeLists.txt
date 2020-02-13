@@ -4,5 +4,5 @@ project(${PROJECT_NAME})
 include_directories(/usr/include)
 link_directories(/usr/lib)
 
-add_executable(${PROJECT_NAME}_bin main.cpp inputManager.h)
+add_executable(${PROJECT_NAME}_bin main.cpp inputManager.h DB.cpp DB.h)
 target_link_libraries(${PROJECT_NAME}_bin igl::core igl::opengl igl::opengl_glfw sqlite3)

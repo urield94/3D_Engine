@@ -4,7 +4,9 @@
 #include <functional>
 #include <igl/opengl/ViewerCore.h>
 #include <igl/opengl/glfw/Viewer.h>
+#include <tutorial/sandBox/DB.h>
 #include "igl/AABB.h"
+#include <tutorial/sandBox/DB.h>
 
 struct GLFWwindow;
 
@@ -14,7 +16,7 @@ public:
 	Renderer();
 	~Renderer();
 	IGL_INLINE void draw( GLFWwindow* window);
-	IGL_INLINE void init(igl::opengl::glfw::Viewer* scn);
+	IGL_INLINE void Init(igl::opengl::glfw::Viewer *viewer, int player_score, int player_level, int player_id, DB db);
 
 	//IGL_INLINE bool key_pressed(unsigned int unicode_key, int modifiers);
 
@@ -126,12 +128,13 @@ public:
 	igl::opengl::glfw::Viewer* scn;
 	// Stores all the viewing options
 	std::vector<igl::opengl::ViewerCore> core_list;
-	int score = 0;
+	int level_score = 0;
 	int final_score = 0;
 	int level = 0;
 	void SetVelocity(igl::opengl::ViewerData &obj);
 	void ResetObject(igl::opengl::ViewerData &obj);
-
+    int player_id;
+    DB db;
 private:
 	size_t selected_core_index;
 	int next_core_id;

@@ -204,9 +204,12 @@ bool Display::launch_rendering(bool loop)
 			frame_counter = 0;
 		}
 
-		if(renderer->score >= 50){
+		if(renderer->level_score >= 50){
+			renderer->level++;
+			renderer->db.SetLevel(renderer->player_id,renderer->final_score, renderer->level);
+
 			char ans = 'N';
-			std::cout << "Final level score: " << renderer->score << std::endl;
+			std::cout << "Final level level_score: " << renderer->level_score << std::endl;
 			std::cout << "Do you want to continue to the next level? (Y/N): ";
 			std::cin >> ans;
 			if(ans == 'N' || ans == 'n'){
@@ -214,8 +217,8 @@ bool Display::launch_rendering(bool loop)
 				return EXIT_SUCCESS;
 			}
 
-			renderer->score = 0;
-			renderer->level++;
+			renderer->level_score = 0;
+
 			std::cout << "---------------\n" << std::endl;
 			std::cout << "----LEVEL " << renderer->level << "----" << std::endl;
 		}

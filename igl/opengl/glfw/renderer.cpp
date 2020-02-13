@@ -153,9 +153,13 @@ void Renderer::init_system() {
     scn->MyScale(Eigen::Vector3f(0.15, 0.15, 0.15));
 }
 
-IGL_INLINE void Renderer::init(igl::opengl::glfw::Viewer *viewer) {
+IGL_INLINE void
+Renderer::Init(igl::opengl::glfw::Viewer *viewer, int player_score, int player_level, int _player_id, DB open_db) {
     scn = viewer;
-
+    final_score = player_score;
+    level = player_level;
+    player_id = _player_id;
+    db = open_db;
     init_system();
 
     core().init();
@@ -469,17 +473,17 @@ bool Renderer::IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerD
             if (tree2.is_leaf()) {
                 if(obj2.score_group == 0){
                     final_score += 5;
-                    score += 5;
+                    level_score += 5;
                 }else if(obj2.score_group == 1){
                     final_score += 10;
-                    score += 10;
+                    level_score += 10;
                 }else{
                     final_score += 15;
-                    score += 15;
+                    level_score += 15;
                 }
                 ResetObject(obj2);
 
-                std::cout << "Score: " << score << "\t\r" << std::flush;
+                std::cout << "Score: " << level_score << "\t\r" << std::flush;
                 std::fflush(stdout);
                 return true;
             } else {
