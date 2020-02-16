@@ -26,34 +26,6 @@ Display::Display(int windowWidth, int windowHeight, const std::string& title)
 		glfwWindowHint(GLFW_SAMPLES, 8);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-		
-//#ifdef __APPLE__
-//		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-//		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-//#endif
-//		if (fullscreen)
-//		{
-//			GLFWmonitor* monitor = glfwGetPrimaryMonitor();
-//			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-//			window = glfwCreateWindow(mode->width, mode->height, title.c_str(), monitor, nullptr);
-//			windowWidth = mode->width;
-//			windowHeight = mode->height;
-//		}
-//		else
-//		{
-			// Set default windows width
-			//if (windowWidth <= 0 & core_list.size() == 1 && renderer->core().viewport[2] > 0)
-			//	windowWidth = renderer->core().viewport[2];
-			//else 
-			//	if (windowWidth <= 0)
-			//	windowWidth = 1280;
-			//// Set default windows height
-			//if (windowHeight <= 0 & core_list.size() == 1 && renderer->core().viewport[3] > 0)
-			//	windowHeight = renderer->core().viewport[3];
-			//else if (windowHeight <= 0)
-			//	windowHeight = 800;
-//			window = glfwCreateWindow(windowWidth, windowHeight, title.c_str(), nullptr, nullptr);
-//		}
 		window = glfwCreateWindow(windowWidth, windowHeight, title.c_str(), nullptr, nullptr);
 		if (!window)
 		{
@@ -78,32 +50,6 @@ Display::Display(int windowWidth, int windowHeight, const std::string& title)
 		printf("Supported GLSL is %s\n", (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
 #endif
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		//Tamir: changes from here
-		// Initialize FormScreen
-	   // __viewer = this;
-		// Register callbacks
-		//glfwSetKeyCallback(window, glfw_key_callback);
-		//glfwSetCursorPosCallback(window,glfw_mouse_move);
-		//glfwSetScrollCallback(window, glfw_mouse_scroll);
-		//glfwSetMouseButtonCallback(window, glfw_mouse_press);
-		//glfwSetWindowSizeCallback(window,glfw_window_size);
-	
-		
-		//glfwSetCharModsCallback(window,glfw_char_mods_callback);
-		//glfwSetDropCallback(window,glfw_drop_callback);
-		// Handle retina displays (windows and mac)
-		//int width, height;
-		//glfwGetFramebufferSize(window, &width, &height);
-		//int width_window, height_window;
-		//glfwGetWindowSize(window, &width_window, &height_window);
-		//highdpi = windowWidth/width_window;
-		
-		//glfw_window_size(window,width_window,height_window);
-		//opengl.init();
-//		core().align_camera_center(data().V, data().F);
-		// Initialize IGL viewer
-//		init();
-		
 }
 
 
@@ -141,12 +87,6 @@ void Display::load_objects(Renderer *rndr) {
 					  rndr->scn->data().F);
 			rndr->trees[rndr->scn->mesh_index(rndr->scn->data().id)] = tree;
 
-			rndr->scn->data().set_visible(true, rndr->core().id);
-			rndr->scn->data().copy_options(rndr->core_list[0], rndr->core());
-
-			rndr->scn->data().set_face_based(!rndr->scn->data().face_based);
-			rndr->core().toggle(rndr->scn->data().show_lines);
-
 			rndr->scn->data().score_group = group;
 
 			rndr->ResetObject(rndr->scn->data());
@@ -154,6 +94,14 @@ void Display::load_objects(Renderer *rndr) {
 			Eigen::MatrixXd C(1,3);
 			C << (rand() % (5)), (rand() % (5)), (rand() % (5));
 			rndr->scn->data().set_colors(C);
+
+
+			rndr->scn->data().set_visible(true, rndr->core().id);
+			rndr->scn->data().copy_options(rndr->core_list[0], rndr->core());
+
+			rndr->scn->data().set_face_based(!rndr->scn->data().face_based);
+			rndr->core(1).toggle(rndr->scn->data().show_lines);
+			rndr->core(2).toggle(rndr->scn->data().show_lines);
 
 			i++;
 
@@ -166,8 +114,6 @@ void Display::load_objects(Renderer *rndr) {
 
 bool Display::launch_rendering(bool loop)
 {
-	// glfwMakeContextCurrent(window);
-	// Rendering loop
 	const int num_extra_frames = 5;
 	int frame_counter = 0;
 	int windowWidth, windowHeight;
@@ -188,7 +134,7 @@ bool Display::launch_rendering(bool loop)
 		if (renderer->object_picked) {
 			renderer->IK_Solver();
 		}
-		renderer->draw(window);
+		renderer->Draw(window);
 		glfwSwapBuffers(window);
 		if (renderer->core().is_animating || frame_counter++ < num_extra_frames)
 		{//motion
@@ -213,6 +159,7 @@ bool Display::launch_rendering(bool loop)
 
 			char ans = 'N';
 			std::cout << "Final level level_score: " << renderer->level_score << std::endl;
+			std::cout << "Total score: " << renderer->final_score << std::endl;
 			std::cout << "Do you want to continue to the next level? (Y/N): ";
 			std::cin >> ans;
 			if(ans == 'N' || ans == 'n'){
@@ -221,7 +168,7 @@ bool Display::launch_rendering(bool loop)
 			}
 
 			renderer->level_score = 0;
-			renderer->SetBackground();
+			renderer->ResetLevel();
 			std::cout << "---------------\n" << std::endl;
 			std::cout << "----LEVEL " << renderer->level << "----" << std::endl;
 		}

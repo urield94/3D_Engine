@@ -38,7 +38,7 @@ Renderer::Renderer() : selected_core_index(0),
 
 }
 
-IGL_INLINE void Renderer::draw(GLFWwindow *window) {
+IGL_INLINE void Renderer::Draw(GLFWwindow *window) {
     using namespace std;
     using namespace Eigen;
 
@@ -59,19 +59,10 @@ IGL_INLINE void Renderer::draw(GLFWwindow *window) {
         core.clear_framebuffers();
     }
 
-    int last_link_index = (scn->links_number - 1);
-    Eigen::Vector4f last_link =  Eigen::Vector4f(scn->data_list[last_link_index].V.colwise().mean()[0],
-                                                 scn->data_list[last_link_index].V.colwise().maxCoeff()[1],
-                                                 scn->data_list[last_link_index].V.colwise().mean()[2],
-                                                 1);
-    Eigen::Vector3f curr_last_link = (GetAncestorTrans(last_link_index + 1) * last_link).head(3);
 
-
-
-    core(1).camera_eye =  curr_last_link.normalized();
-    core(1).camera_translation = last_link.head(3).normalized();
-    core(1).camera_up = Eigen::Vector3f(0, scn->data_list[last_link_index].V.colwise().maxCoeff()[1], 0).normalized();
-
+    core(1).camera_translation = (GetAncestorRotation(scn->links_number).matrix().col(1) * -0.8) - (scn->MakeTrans() * GetAncestorTrans(scn->links_number)).col(3).head(3);
+    core(1).camera_up = GetAncestorRotation(scn->links_number) * Eigen::Vector3f(0, 0, 1);
+    core(1).camera_eye = GetAncestorRotation(scn->links_number) * Eigen::Vector3f(0, -2, 0);
 
     for (auto &core : core_list) {
         for (auto &mesh : scn->data_list) {
@@ -126,32 +117,10 @@ void Renderer::ResetObject(igl::opengl::ViewerData &obj){
     SetVelocity(obj);
 }
 
-Eigen::Matrix4f Renderer::GetAncestorTrans(int link_index) {
-    Eigen::Matrix4f links = Eigen::Matrix4f::Identity();
-    for(int i = 0; i < link_index; i++){
-        links = links * scn->data_list[i].MakeConnectedTrans();
-    }
-    return links;
-}
-
-Eigen::Matrix3f Renderer::GetAncestorInverse(int link_index) {
-    Eigen::Matrix3f links = scn->data_list[link_index - 1].GetRotationMatrix().inverse();
-    for(int i = link_index - 2; i > 0; i--){
-        links = links * scn->data_list[i].GetRotationMatrix().inverse() * links;
-    }
-    return links;
-}
-
-
-void Renderer::init_system() {
+void Renderer::ResetLevel(){
     int i = 0;
-    for (; i < scn->links_number; i++) {
-        scn->data_list[i].line_width = 3;
-        scn->data_list[i].show_overlay_depth = 0;
-        scn->data_list[i].point_size = 10;
-        scn->data_list[i].set_face_based(!scn->data_list[i].face_based);
-        core().toggle(scn->data_list[i].show_lines);
-
+    for(; i < scn->links_number; i++){
+        scn->data_list[i].ResetTrans();
         Eigen::Vector3d m = scn->data_list[i].V.colwise().minCoeff();
         Eigen::Vector3d M = scn->data_list[i].V.colwise().maxCoeff();
         double link_height = M(1) - m(1);
@@ -163,6 +132,47 @@ void Renderer::init_system() {
         else
             scn->data_list[i].MyPreTranslate(Eigen::Vector3f(0, link_height , 0));
     }
+    i++; // Skip the background object
+    for(; i < scn->data_list.size(); i++){
+        ResetObject(scn->data_list[i]);
+    }
+    SetBackground();
+}
+
+Eigen::Matrix4f Renderer::GetAncestorTrans(int link_index) {
+    Eigen::Matrix4f links = Eigen::Matrix4f::Identity();
+    for(int i = 0; i < link_index; i++){
+        links = links * scn->data_list[i].MakeConnectedTrans();
+    }
+    return links;
+}
+
+Eigen::Matrix3f Renderer::GetAncestorInverse(int link_index) {
+    Eigen::Matrix3f links = scn->data_list[link_index - 1].GetRotationMatrix().inverse();
+    for(int i = link_index - 2; i >= 0; i--){
+        links = links * scn->data_list[i].GetRotationMatrix().inverse();
+    }
+    return links;
+}
+
+Eigen::Matrix3f Renderer::GetAncestorRotation(int link_index) {
+    Eigen::Matrix3f links = Eigen::Matrix3f::Identity();
+    for(int i = 0; i < link_index; i++){
+        links = links * scn->data_list[i].GetRotationMatrix().matrix();
+    }
+    return links;
+}
+
+void Renderer::InitSystem() {
+    int i = 0;
+    for (; i < scn->links_number; i++) {
+        scn->data_list[i].line_width = 3;
+        scn->data_list[i].show_overlay_depth = 0;
+        scn->data_list[i].point_size = 10;
+        scn->data_list[i].set_face_based(!scn->data_list[i].face_based);
+        core().toggle(scn->data_list[i].show_lines);
+    }
+    ResetLevel();
     scn->MyScale(Eigen::Vector3f(0.15, 0.15, 0.15));
 }
 
@@ -174,7 +184,7 @@ Renderer::Init(igl::opengl::glfw::Viewer *viewer, int player_score, int player_l
     game_id = player_id;
     db = open_db;
 
-    init_system();
+    InitSystem();
 
     core().init();
     core().align_camera_center(scn->data().V, scn->data().F);
@@ -186,11 +196,12 @@ Renderer::Init(igl::opengl::glfw::Viewer *viewer, int player_score, int player_l
         trees[scn->mesh_index(obj.id)] = tree;
     }
 
-    // Add another point of view screen
     core().viewport = Eigen::Vector4f(0, 0, 850, 850);
     append_core(Eigen::Vector4f(850, 0, 850, 850));
 
-    SetBackground();
+    core(1).camera_up = scn->data_list[scn->links_number-1].GetRotationMatrix().matrix() * Eigen::Vector3f(0, 0, 1);
+    core(1).camera_eye = scn->data_list[scn->links_number-1].GetRotationMatrix().matrix() * Eigen::Vector3f(0,  -2, 0);
+    core(1).camera_translation = (GetAncestorRotation(scn->links_number).matrix().col(1) * -0.8) - (scn->MakeTrans() * GetAncestorTrans(scn->links_number)).col(3).head(3);
 
     for(int i = 0; i < scn->links_number; i++){
         Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic> R, G, B, A;
@@ -205,7 +216,7 @@ Renderer::Init(igl::opengl::glfw::Viewer *viewer, int player_score, int player_l
 }
 
 
-void Renderer::resize_by_scrolling(double x, double y) {
+void Renderer::ResizeByScrolling(double x, double y) {
     igl::opengl::glfw::Viewer *scn = GetScene();
     Eigen::Matrix4f view = Eigen::Matrix4f::Identity();
     igl::look_at(core().camera_eye, core().camera_center, core().camera_up, view);
@@ -343,13 +354,9 @@ IGL_INLINE void Renderer::post_resize(GLFWwindow *window, int w, int h) {
     if (core_list.size() == 1) {
         core().viewport = Eigen::Vector4f(0, 0, w, h);
     } else {
-        // It is up to the user to define the behavior of the post_resize() function
-        // when there are multiple viewports (through the `callback_post_resize` callback)
+        core(1).viewport = Eigen::Vector4f(0, 0, w / 2, h);
+        core(2).viewport = Eigen::Vector4f(w/2, 0, w / 2, h);
     }
-    //for (unsigned int i = 0; i < plugins.size(); ++i)
-    //{
-    //	plugins[i]->post_resize(w, h);
-    //}
     if (callback_post_resize) {
         callback_post_resize(window, w, h);
     }

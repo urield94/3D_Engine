@@ -43,11 +43,13 @@ igl::opengl::glfw::Viewer load_meshes_from_conf(Renderer *rndr) {
                 i++;
             } else {
                 rndr->object_paths.push_back(line);
-                std::size_t pos = line.find("cube");
+                std::size_t pos = line.find("sphere");
                 if(pos != -1){
                     viewer.load_mesh_from_file(line);
                     viewer.data().MyPreTranslate(Eigen::Vector3f(0, 0, 0));
                     viewer.data().MyScale(Eigen::Vector3f(50,50,50));
+                    viewer.data().set_face_based(!viewer.data().face_based);
+                    rndr->core().toggle(viewer.data().show_lines);
                 }
             }
         }

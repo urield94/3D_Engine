@@ -16,6 +16,7 @@ Eigen::Matrix4f Movable::MakeTrans()
 void Movable::ResetTrans()
 {
     T = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+    Tin = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
 }
 
 Eigen::Matrix4f Movable::MakeConnectedTrans()

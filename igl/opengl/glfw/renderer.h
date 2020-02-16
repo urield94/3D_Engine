@@ -15,7 +15,7 @@ class Renderer
 public:
 	Renderer();
 	~Renderer();
-	IGL_INLINE void draw( GLFWwindow* window);
+	IGL_INLINE void Draw(GLFWwindow *window);
 	IGL_INLINE void Init(igl::opengl::glfw::Viewer *viewer, int player_score, int player_level, int player_id, DB db);
 
 	//IGL_INLINE bool key_pressed(unsigned int unicode_key, int modifiers);
@@ -100,9 +100,9 @@ public:
 				(selected_core_index + core_list.size() + (unicode_key == ']' ? 1 : -1)) % core_list.size();
 
 	}
-	void init_system();
+	void InitSystem();
 	void draw_axis(igl::opengl::ViewerData & mesh);
-	void resize_by_scrolling(double x, double y);
+	void ResizeByScrolling(double x, double y);
 	void IK_Solver();
 	bool object_picked = false;
 
@@ -116,13 +116,10 @@ public:
 		return ((index <= 0 || index >= scn->links_number) ? Eigen::Matrix3f::Identity() : GetAncestorInverse(index));
 	};
 
-    void DrawBox(igl::opengl::ViewerData &obj,
-                 Eigen::MatrixXd top_points,
-                 Eigen::MatrixXd bottom_points,
-                 Eigen::MatrixXd color);
-    bool IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerData &obj2,
+	Eigen::Matrix3f GetAncestorRotation(int link_index);
+
+	bool IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerData &obj2,
                        igl::AABB<Eigen::MatrixXd, 3> tree1, igl::AABB<Eigen::MatrixXd, 3> tree2);
-    void DrawSmallBox(igl::opengl::ViewerData &obj, Eigen::AlignedBox<double, 3> box);
 	std::vector<igl::AABB<Eigen::MatrixXd,3>> trees;
 	std::vector<std::string> object_paths;
 	igl::opengl::glfw::Viewer* scn;
@@ -136,6 +133,7 @@ public:
     int game_id;
     DB db;
 	void SetBackground();
+	void ResetLevel();
 private:
 	size_t selected_core_index;
 	int next_core_id;
