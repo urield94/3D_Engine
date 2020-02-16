@@ -59,17 +59,19 @@ IGL_INLINE void Renderer::draw(GLFWwindow *window) {
         core.clear_framebuffers();
     }
 
-    //TODO START - CHANGE POINT OF VIEW TO BE FROM THE SNAKE EYES.
     int last_link_index = (scn->links_number - 1);
     Eigen::Vector4f last_link =  Eigen::Vector4f(scn->data_list[last_link_index].V.colwise().mean()[0],
                                                  scn->data_list[last_link_index].V.colwise().maxCoeff()[1],
                                                  scn->data_list[last_link_index].V.colwise().mean()[2],
                                                  1);
-    Eigen::Vector3f curr_last_link_E = (GetAncestorTrans(last_link_index + 1) * last_link).head(3);
-    core(1).camera_eye =  curr_last_link_E.normalized();
+    Eigen::Vector3f curr_last_link = (GetAncestorTrans(last_link_index + 1) * last_link).head(3);
+
+
+
+    core(1).camera_eye =  curr_last_link.normalized();
     core(1).camera_translation = last_link.head(3).normalized();
     core(1).camera_up = Eigen::Vector3f(0, scn->data_list[last_link_index].V.colwise().maxCoeff()[1], 0).normalized();
-    //TODO END
+
 
     for (auto &core : core_list) {
         for (auto &mesh : scn->data_list) {
@@ -92,7 +94,7 @@ IGL_INLINE void Renderer::draw(GLFWwindow *window) {
 
 void Renderer::SetBackground(){
     Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic> R, G, B, A;
-    std::string image_name = "backgrounds/" + std::to_string(level) + ".png";
+    std::string image_name = "backgrounds/" + std::to_string(level % 14) + ".png";
     igl::png::readPNG(image_name, R, G, B, A);
     scn->data_list[scn->links_number].show_texture = 1;
     scn->data_list[scn->links_number].set_texture(R, G, B);

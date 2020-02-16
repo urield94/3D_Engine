@@ -144,6 +144,9 @@ void Display::load_objects(Renderer *rndr) {
 			rndr->scn->data().set_visible(true, rndr->core().id);
 			rndr->scn->data().copy_options(rndr->core_list[0], rndr->core());
 
+			rndr->scn->data().set_face_based(!rndr->scn->data().face_based);
+			rndr->core().toggle(rndr->scn->data().show_lines);
+
 			rndr->scn->data().score_group = group;
 
 			rndr->ResetObject(rndr->scn->data());
