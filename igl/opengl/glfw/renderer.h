@@ -1,3 +1,5 @@
+#include <utility>
+
 #pragma once
 #include <igl/igl_inline.h>
 #include <vector>
@@ -134,6 +136,9 @@ public:
     DB db;
 	void SetBackground();
 	void ResetLevel();
+	void SetSoundDir(std::string path){
+	    sound_dir = std::move(path);
+	}
 private:
 	size_t selected_core_index;
 	int next_core_id;
@@ -150,5 +155,6 @@ private:
         Eigen::Vector3f D;
     }OBBSatVars;
     bool OBBCheckSat(OBBSatVars vars);
-
+	bool just_started = true;
+	std::string sound_dir = "";
 };

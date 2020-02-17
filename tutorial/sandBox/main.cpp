@@ -71,12 +71,12 @@ int main(int argc, char *argv[]) {
 
     Display *disp = new Display(1700, 850, "Wellcome");
     Renderer renderer;
+    renderer.SetSoundDir("/home/rochberg/uriel/3D/ass3/3D_Engine/tutorial/sandBox/sound");
 
     igl::opengl::glfw::Viewer viewer = load_meshes_from_conf(&renderer);
 
     Init(*disp);
     renderer.Init(&viewer, player.score, player.level, player.id, db);
-
     disp->SetRenderer(&renderer);
 
     disp->launch_rendering(true);

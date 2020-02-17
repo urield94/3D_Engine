@@ -11,18 +11,23 @@
             return 0;\
 }
 
+
 int player_score;
 int player_id;
 int player_level;
-std::string player_name;
 std::string player_id_str;
 
+
 DB::DB(){
+}
+
+DB::~DB() {
 }
 
 int DB::DoNothing_Callback(void *none, int num_of_values, char **values, char **keys) {
     return 1;
 }
+
 
 int DB::SetPlayerId_Callback(void *none, int num_of_values, char **values, char **keys) {
     //Get last-id in "games" table as char*, convert it to string and then to int.
@@ -38,10 +43,11 @@ int DB::SetPlayerId_Callback(void *none, int num_of_values, char **values, char 
     return 0;
 }
 
+
 int DB::SetExistingPlayer_Callback(void *notUsed, int num_of_values, char **values, char **keys) {
     for(int i = 0; i<num_of_values; i++) {
         if(!strcmp(keys[i],"username")) {
-            player_name = values[i];
+            continue;
         }else{
             std::stringstream val_str;
             unsigned int val_number;
@@ -58,8 +64,6 @@ int DB::SetExistingPlayer_Callback(void *notUsed, int num_of_values, char **valu
     }
     return 1;
 }
-
-
 
 
 int DB::AddNewPlayer(sqlite3 *db) {
@@ -79,6 +83,7 @@ int DB::AddNewPlayer(sqlite3 *db) {
     return 1;
 }
 
+
 int DB::SetPlayer(sqlite3 *db, std::string name) {
     std::string get_user_details = "SELECT * FROM games WHERE username = '" + name + "'";
     rc = sqlite3_exec(db, get_user_details.c_str(), SetExistingPlayer_Callback, 0, &zErrMsg);
@@ -94,8 +99,6 @@ int DB::SetPlayer(sqlite3 *db, std::string name) {
         return 1;
     }
 }
-
-
 
 
 Player DB::GetPlayerFromDB() {
@@ -131,6 +134,7 @@ Player DB::GetPlayerFromDB() {
     return player;
 }
 
+
 int DB::SetLevel(int player_id, int score, int level) {
     rc = sqlite3_open(db_name.c_str(), &db);
     player.id = score;
@@ -150,7 +154,7 @@ int DB::SetLevel(int player_id, int score, int level) {
     return 1;
 }
 
-DB::~DB() {
-}
+
+
 
 

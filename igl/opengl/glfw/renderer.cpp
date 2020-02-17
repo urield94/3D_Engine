@@ -137,6 +137,16 @@ void Renderer::ResetLevel(){
         ResetObject(scn->data_list[i]);
     }
     SetBackground();
+
+    std::string command = "python3 " + sound_dir + "/sound.py ";
+    if(just_started){
+        command += "welcome &";
+        just_started = false;
+    }else{
+        command += "level &";
+    }
+    system(command.c_str());
+
 }
 
 Eigen::Matrix4f Renderer::GetAncestorTrans(int link_index) {
@@ -516,6 +526,10 @@ bool Renderer::IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerD
                     final_score += 15;
                     level_score += 15;
                 }
+
+                std::string command = "python3 " + sound_dir + "/sound.py break &";
+                system(command.c_str());
+
                 ResetObject(obj2);
 
                 std::cout << "Score: " << level_score << "\t\r" << std::flush;
