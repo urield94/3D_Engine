@@ -21,6 +21,9 @@ def welcome_sound():
 def end_sound():
     play(f'{this_dir}/End.wav')
 
+def error_sound():
+    play(f'{this_dir}/Error.wav')
+
 if __name__ == "__main__":
     try:
         sound = sys.argv[1]
@@ -32,6 +35,8 @@ if __name__ == "__main__":
             welcome_sound()
         elif sound == "end":
             end_sound()
+        elif sound == "error":
+            error_sound()
     except:
         pass
 

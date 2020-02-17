@@ -138,15 +138,12 @@ void Renderer::ResetLevel(){
     }
     SetBackground();
 
-//    std::string command = "python3 " + sound_dir + "/sound.py ";
     if(just_started){
         PlaySound("welcome");
         just_started = false;
     }else{
         PlaySound("level");
     }
-//    system(command.c_str());
-
 }
 
 Eigen::Matrix4f Renderer::GetAncestorTrans(int link_index) {
@@ -417,6 +414,7 @@ void Renderer::IK_Solver() {
 
         if (tail_obj_dist > scn->snake_length) {
             object_picked = false;
+            PlaySound("error");
             return;
         }
 
@@ -527,8 +525,6 @@ bool Renderer::IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerD
                     level_score += 15;
                 }
                 PlaySound("break");
-//                std::string command = "python3 " + sound_dir + "/sound.py break &";
-//                system(command.c_str());
 
                 ResetObject(obj2);
 
