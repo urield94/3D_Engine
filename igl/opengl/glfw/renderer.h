@@ -136,8 +136,10 @@ public:
     DB db;
 	void SetBackground();
 	void ResetLevel();
-	void SetSoundDir(std::string path){
-	    sound_dir = std::move(path);
+	void SetSoundDir(std::string path){sound_dir = std::move(path);}
+	void PlaySound(std::string sound){
+        std::string command = "python3 " + sound_dir + "/sound.py " + sound + " &";
+        system(command.c_str());
 	}
 private:
 	size_t selected_core_index;

@@ -138,14 +138,14 @@ void Renderer::ResetLevel(){
     }
     SetBackground();
 
-    std::string command = "python3 " + sound_dir + "/sound.py ";
+//    std::string command = "python3 " + sound_dir + "/sound.py ";
     if(just_started){
-        command += "welcome &";
+        PlaySound("welcome");
         just_started = false;
     }else{
-        command += "level &";
+        PlaySound("level");
     }
-    system(command.c_str());
+//    system(command.c_str());
 
 }
 
@@ -526,9 +526,9 @@ bool Renderer::IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerD
                     final_score += 15;
                     level_score += 15;
                 }
-
-                std::string command = "python3 " + sound_dir + "/sound.py break &";
-                system(command.c_str());
+                PlaySound("break");
+//                std::string command = "python3 " + sound_dir + "/sound.py break &";
+//                system(command.c_str());
 
                 ResetObject(obj2);
 

@@ -163,6 +163,7 @@ bool Display::launch_rendering(bool loop)
 			std::cout << "Do you want to continue to the next level? (Y/N): ";
 			std::cin >> ans;
 			if(ans == 'N' || ans == 'n'){
+				renderer->PlaySound("end");
 				std::cout << "\n*******************\n* FINAL SCORE: " << renderer->final_score << " *\n*******************" << std::endl;
 				return EXIT_SUCCESS;
 			}

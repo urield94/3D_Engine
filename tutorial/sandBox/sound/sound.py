@@ -18,6 +18,9 @@ def level_sound():
 def welcome_sound():
     play(f'{this_dir}/Welcome.wav')
 
+def end_sound():
+    play(f'{this_dir}/End.wav')
+
 if __name__ == "__main__":
     try:
         sound = sys.argv[1]
@@ -27,6 +30,8 @@ if __name__ == "__main__":
             break_sound()
         elif sound == "welcome":
             welcome_sound()
+        elif sound == "end":
+            end_sound()
     except:
         pass
 
