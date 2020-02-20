@@ -22,7 +22,7 @@ public:
 	void MyScale(Eigen::Vector3f amt);
 	void SetCenterOfRotation(Eigen::Vector3f amt);
 	Eigen::Vector3f GetCenterOfRotation();
-	Eigen::Transform<float,3,Eigen::Affine> Tin; //Parent
+	Eigen::Transform<float,3,Eigen::Affine> Tin;
     void TranslateInSystem(Eigen::Matrix4f mat, Eigen::Vector3f amt);
     void RotateInSystem(Eigen::Vector3f rotAxis, float angle);
     int score_group;
@@ -30,7 +30,7 @@ public:
 	Eigen::Vector3f GetVelocity();
 	void ResetTrans();
 private:
-	Eigen::Transform<float,3,Eigen::Affine> T; //Self
+	Eigen::Transform<float,3,Eigen::Affine> T;
 	Eigen::Vector3f velocity;
 };
 

@@ -127,7 +127,7 @@ bool Display::launch_rendering(bool loop)
 	double last_first_time = igl::get_seconds();
 
 	std::cout << "\n----LEVEL " << renderer->level << "----" << std::endl;
-	while (!glfwWindowShouldClose(window))
+	while (!glfwWindowShouldClose(window) && !renderer->end_game)
 	{
 
 		double tic = igl::get_seconds();
@@ -154,7 +154,8 @@ bool Display::launch_rendering(bool loop)
 		}
 
 		if(renderer->level_score >= 50){
-			renderer->level++;
+            renderer->PlaySound("lend");
+            renderer->level++;
 			renderer->db.SetLevel(renderer->game_id,renderer->final_score, renderer->level);
 
 			char ans = 'N';

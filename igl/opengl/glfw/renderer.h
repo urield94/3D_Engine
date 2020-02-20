@@ -141,6 +141,7 @@ public:
         std::string command = "python3 " + sound_dir + "/sound.py " + sound + " &";
         system(command.c_str());
 	}
+	bool end_game = false;
 private:
 	size_t selected_core_index;
 	int next_core_id;

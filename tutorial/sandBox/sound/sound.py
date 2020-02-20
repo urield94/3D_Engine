@@ -24,6 +24,9 @@ def end_sound():
 def error_sound():
     play(f'{this_dir}/Error.wav')
 
+def level_end():
+    play(f'{this_dir}/Level_end.wav')
+
 if __name__ == "__main__":
     try:
         sound = sys.argv[1]
@@ -37,6 +40,8 @@ if __name__ == "__main__":
             end_sound()
         elif sound == "error":
             error_sound()
+        elif sound == "lend":
+            level_end()
     except:
         pass
 

@@ -208,7 +208,8 @@ Renderer::Init(igl::opengl::glfw::Viewer *viewer, int player_score, int player_l
 
     core(1).camera_up = scn->data_list[scn->links_number-1].GetRotationMatrix().matrix() * Eigen::Vector3f(0, 0, 1);
     core(1).camera_eye = scn->data_list[scn->links_number-1].GetRotationMatrix().matrix() * Eigen::Vector3f(0,  -2, 0);
-    core(1).camera_translation = (GetAncestorRotation(scn->links_number).matrix().col(1) * -0.8) - (scn->MakeTrans() * GetAncestorTrans(scn->links_number)).col(3).head(3);
+    core(1).camera_translation = (GetAncestorRotation(scn->links_number).matrix().col(1) * -0.8) -
+                                 (scn->MakeTrans() * GetAncestorTrans(scn->links_number)).col(3).head(3);
 
     for(int i = 0; i < scn->links_number; i++){
         Eigen::Matrix<unsigned char, Eigen::Dynamic, Eigen::Dynamic> R, G, B, A;
@@ -422,6 +423,10 @@ void Renderer::IK_Solver() {
 
         if (IsBoxesColide(scn->data_list[last_link_index], scn->data(),
                           trees[last_link_index], trees[scn->mesh_index(scn->data().id)])) {
+            PlaySound("break");
+            ResetObject(scn->data());
+            std::cout << "Score: " << level_score << "\t\r" << std::flush;
+            std::fflush(stdout);
             object_picked = false;
             return;
         }
@@ -443,17 +448,14 @@ void Renderer::IK_Solver() {
                                                                       1);
             Eigen::Vector3f curr_link_3f = curr_link_4f.head(3);
 
-            Eigen::Vector3f RD = (selected_object_3f - curr_link_3f).normalized();
-            Eigen::Vector3f RE = (head_3f - curr_link_3f).normalized();
-            float pre_angle = RE.dot(RD);
-            if (pre_angle > 1) {
-                pre_angle = 1;
-            } else if (pre_angle < -1)
-                pre_angle = -1;
+            Eigen::Vector3f curr_obj_dist = (selected_object_3f - curr_link_3f).normalized();
+            Eigen::Vector3f curr_head_dist = (head_3f - curr_link_3f).normalized();
 
-            float angle = acosf(pre_angle);
+            float pa = curr_head_dist.dot(curr_obj_dist);
+            pa = pa > 1 ? 1 : pa < -1 ? -1 : pa;
+            float angle = acosf(pa);
 
-            Eigen::Vector3f cross = RE.cross(RD).normalized();
+            Eigen::Vector3f cross = curr_head_dist.cross(curr_obj_dist).normalized();
             Eigen::Vector3f crossInverse = GetAncestorInverseIfNeeded(last_link_index) * cross;
             if (head_obj_dist > 0.5)
                 angle = angle / 10;
@@ -524,12 +526,6 @@ bool Renderer::IsBoxesColide(igl::opengl::ViewerData &obj1, igl::opengl::ViewerD
                     final_score += 15;
                     level_score += 15;
                 }
-                PlaySound("break");
-
-                ResetObject(obj2);
-
-                std::cout << "Score: " << level_score << "\t\r" << std::flush;
-                std::fflush(stdout);
                 return true;
             } else {
                 return IsBoxesColide(obj1, obj2, tree1, *tree2.m_left) || IsBoxesColide(obj1, obj2, tree1, *tree2.m_right);

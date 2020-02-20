@@ -143,6 +143,15 @@ static void glfw_key_callback(GLFWwindow* window, int key, int scancode, int act
 				rndr->ChangeCamera(key);
 				break;
 			}
+            case 'q':
+            case 'Q':
+            {
+                rndr->PlaySound("end");
+                rndr->db.SetLevel(rndr->game_id,rndr->final_score, rndr->level);
+                rndr->end_game = true;
+                std::cout << "\n*******************\n* FINAL SCORE: " << rndr->final_score << " *\n*******************" << std::endl;
+                break;
+            }
 			case ';':
 				scn->data().show_vertid = !scn->data().show_vertid;
 				break;

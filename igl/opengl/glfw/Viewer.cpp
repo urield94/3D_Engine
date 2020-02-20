@@ -57,27 +57,7 @@ namespace glfw
 {
 
   IGL_INLINE void Viewer::init()
-  {
-   
-
-  }
-
-  //IGL_INLINE void Viewer::init_plugins()
-  //{
-  //  // Init all plugins
-  //  for (unsigned int i = 0; i<plugins.size(); ++i)
-  //  {
-  //    plugins[i]->init(this);
-  //  }
-  //}
-
-  //IGL_INLINE void Viewer::shutdown_plugins()
-  //{
-  //  for (unsigned int i = 0; i<plugins.size(); ++i)
-  //  {
-  //    plugins[i]->shutdown();
-  //  }
-  //}
+  {}
 
   IGL_INLINE Viewer::Viewer():
     data_list(1),
@@ -85,14 +65,8 @@ namespace glfw
     next_data_id(1)
   {
     data_list.front().id = 0;
-
-  
-
     // Temporary variables initialization
-   // down = false;
-  //  hack_never_moved = true;
     scroll_position = 0.0f;
-
     // Per face
     data().set_face_based(false);
 
@@ -107,6 +81,8 @@ namespace glfw
 
   Every 50 points you've earned, the speed and the creation-radios of
   the objects will be increase.
+
+  Press Q to quit.
 
   GOOD-LUCK!
 
